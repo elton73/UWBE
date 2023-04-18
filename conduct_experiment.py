@@ -11,7 +11,6 @@ import datetime
 from time import localtime, strftime
 import time
 from pathlib import Path
-import statistics
 
 class StartThread(threading.Thread):
     def __init__(self):
@@ -46,10 +45,10 @@ tag2_csv = os.path.join(csv_dir, f'10001001_T{strftime("%H:%M:%S", localtime()).
 
 tag1_csv_file = open(tag1_csv, 'w', newline='')
 tag1_csv_writer = csv.writer(tag1_csv_file, dialect='excel')
-tag1_csv_writer.writerow(['tag_id', 'coordinates', 'zone', 'moving', 'current_time'])
+tag1_csv_writer.writerow(['tag_id', 'x', 'y', 'z', 'zone', 'moving', 'success', 'current_time'])
 tag2_csv_file = open(tag2_csv, 'w', newline='')
 tag2_csv_writer = csv.writer(tag2_csv_file, dialect='excel')
-tag2_csv_writer.writerow(['tag_id', 'coordinates', 'zone', 'moving', 'current_time'])
+tag2_csv_writer.writerow(['tag_id', 'x', 'y', 'z', 'zone', 'moving', 'success', 'current_time'])
 
 #setup connection
 tenant_id = "63ee6a286f3dc2ff641a73e2"
@@ -72,7 +71,7 @@ def on_message(client, userdata, msg):
     datas = json.loads(msg.payload.decode())
     for data in datas:
         if running:
-            if data['success']:
+            if data:
                 try:
                     local_datetime = datetime.datetime.fromtimestamp(data['timestamp'])
                     current_time = \
@@ -83,18 +82,23 @@ def on_message(client, userdata, msg):
                     coordinates = data['data']['coordinates']
                     zone = data['data']['zones'][0]['name']
                     moving = data['data']['moving']
-                    output = [tag_id, coordinates, zone, moving, current_time]
+                    x = coordinates['x']
+                    y = coordinates['y']
+                    z = coordinates['z']
+                    success = data['success']
+                    output = [tag_id, x, y, z, zone, moving, success, current_time]
                     if tag_id == "10001009":
                         tag1_csv_writer.writerow(output)
                     elif tag_id == "10001001":
                         tag2_csv_writer.writerow(output)
                     if tag_id == "10001009":
-                        print(zone)
+                        print(f"({x},{y},{z}) {success} {zone}")
                 except:
                     print("No Data")
 
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
+    print("Press control to start and stop. Press q to quit")
 
 client = mqtt.Client(transport="websockets")
 client.username_pw_set(username, password=password)
