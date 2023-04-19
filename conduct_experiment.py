@@ -11,6 +11,7 @@ from modules.csv import setup_csv
 import time
 
 tag1_csv_writer, tag2_csv_writer = setup_csv()
+fail_count = 0
 class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -29,6 +30,7 @@ class StartThread(threading.Thread):
                     print('Stopped')
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
+                print(f"Failed {fail_count} times")
                 quit()
 
 #setup connection
@@ -47,12 +49,12 @@ def on_connect(client, userdata, flags, rc):
 
 # Callback triggered by a new Pozyx data packet
 def on_message(client, userdata, msg):
-    global running
+    global running, fail_count
 
     datas = json.loads(msg.payload.decode())
     for data in datas:
         if running:
-            if data:
+            if data['success']:
                 try:
                     local_datetime = datetime.datetime.fromtimestamp(data['timestamp'])
                     current_time = \
@@ -61,22 +63,23 @@ def on_message(client, userdata, msg):
                         f"{local_datetime.strftime('%S')}"
                     tag_id = data['tagId']
                     coordinates = data['data']['coordinates']
-                    zone = data['data']['zones'][0]['name']
                     moving = data['data']['moving']
                     x = coordinates['x']
                     y = coordinates['y']
                     z = coordinates['z']
                     success = data['success']
-                    output = [tag_id, x, y, z, zone, moving, success, current_time]
+                    output = [tag_id, x, y, z, moving, success, current_time]
                     if tag_id == "10001009":
                         tag1_csv_writer.writerow(output)
                     elif tag_id == "10001001":
                         tag2_csv_writer.writerow(output)
                     if tag_id == "10001009":
-                        print(f"({x},{y},{z}) {success} {zone}")
-                except:
-                    print("No Data")
-
+                        print(f"({x},{y},{z}) {success}")
+                except Exception as e:
+                    print("Failed")
+                    print(e)
+                    print(data)
+                    fail_count += 1
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
     print("Press control to start and stop. Press q to quit")
