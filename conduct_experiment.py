@@ -6,11 +6,9 @@ import keyboard
 import paho.mqtt.client as mqtt
 import json
 import ssl
-import datetime
 from modules.csv import setup_csv
+from modules.tags import Tag, tag_search
 import time
-
-tag1_csv_writer, tag2_csv_writer = setup_csv()
 fail_count = 0
 class StartThread(threading.Thread):
     def __init__(self):
@@ -30,7 +28,7 @@ class StartThread(threading.Thread):
                     print('Stopped')
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
-                print(f"Failed {fail_count} times")
+                # print(f"Failed {fail_count} times")
                 quit()
 
 #setup connection
@@ -50,36 +48,22 @@ def on_connect(client, userdata, flags, rc):
 # Callback triggered by a new Pozyx data packet
 def on_message(client, userdata, msg):
     global running, fail_count
-
     datas = json.loads(msg.payload.decode())
     for data in datas:
-        if running:
-            if data['success']:
-                try:
-                    local_datetime = datetime.datetime.fromtimestamp(data['timestamp'])
-                    current_time = \
-                        f"{local_datetime.strftime('%H')}:" \
-                        f"{local_datetime.strftime('%M')}:" \
-                        f"{local_datetime.strftime('%S')}"
-                    tag_id = data['tagId']
-                    coordinates = data['data']['coordinates']
-                    moving = data['data']['moving']
-                    x = coordinates['x']
-                    y = coordinates['y']
-                    z = coordinates['z']
-                    success = data['success']
-                    output = [tag_id, x, y, z, moving, success, current_time]
-                    if tag_id == "10001009":
-                        tag1_csv_writer.writerow(output)
-                    elif tag_id == "10001001":
-                        tag2_csv_writer.writerow(output)
-                    if tag_id == "10001009":
-                        print(f"({x},{y},{z}) {success}")
-                except Exception as e:
-                    print("Failed")
-                    print(e)
-                    print(data)
-                    fail_count += 1
+        if not running:
+            continue
+        if not data['success']:
+            print("Data Unsuccessful")
+            continue
+        tag = tag_search(tags, data['tagId'])
+        if not tag:
+            continue
+        tag.add_data(data)
+        #     except Exception as e:
+        #         print("Failed")
+        #         print(e)
+        #         print(data)
+        #         fail_count += 1
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
     print("Press control to start and stop. Press q to quit")
@@ -100,6 +84,16 @@ client.connect(host, port=port)
 running = False
 
 if __name__ == '__main__':
-    StartThread().start()
+    tags = []
+    inputs = True
+    while inputs:
+        tag = str(input("Enter s to start. Enter a tagId: "))
+        if tag == 's':
+            inputs = False
+        else:
+            tags.append(Tag(tag))
+
+    if tags:
+        StartThread().start()
 
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\conduct_experiment.py

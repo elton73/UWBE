@@ -45,7 +45,7 @@ print(path)
 csv_file = open(path, 'w', newline='')
 csv_writer = csv.writer(csv_file, dialect='excel')
 csv_writer.writerow(["coordinate number", "direction", "x_gold", "x_mean",
-                     "x_largest_diff", "y_gold", "y_mean", "y_largest_diff"])
+                     "x_largest_diff", "y_gold", "y_mean", "y_largest_diff", "Bad Signal"])
 
 #setup connection
 tenant_id = "63ee6a286f3dc2ff641a73e2"
@@ -63,7 +63,7 @@ def on_connect(client, userdata, flags, rc):
 
 # Callback triggered by a new Pozyx data packet
 def on_message(client, userdata, msg):
-    global running
+    global running, fails
 
     datas = json.loads(msg.payload.decode())
     for data in datas:
@@ -87,6 +87,7 @@ def on_message(client, userdata, msg):
                     print(coordinates)
                 except:
                     print("No Coordinates")
+                    fails += 1
 
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
@@ -111,20 +112,56 @@ x_gold = None
 y_gold = None
 coordinate = None
 direction = None
+fails = 0
 
 def define_new_coordinates():
-    global x_gold, y_gold, coordinate, direction
+    global x_gold, y_gold, coordinate, direction, fails
     coordinate = str(input("Enter Coordinate Number: "))
     if coordinate == "q":
         csv_file.close()
         quit()
+    elif coordinate == "1":
+        x_gold = 1000
+        y_gold = -1000
+
+    elif coordinate == "2":
+        x_gold = 3000
+        y_gold = -1000
+
+    elif coordinate == "3":
+        x_gold = 2232
+        y_gold = -5191
+
+    elif coordinate == "4":
+        x_gold = 232
+        y_gold = -5191
+
+    elif coordinate == "1_2":
+        x_gold = 0
+        y_gold = -1000
+
+    elif coordinate == "3_4":
+        x_gold = 0
+        y_gold = -5191
+
+    elif coordinate == "5_6":
+        x_gold = 3232
+        y_gold = 0
+
+    elif coordinate == "7_8":
+        x_gold = -268
+        y_gold = -0
+
+    else:
+        x_gold = 0
+        y_gold = 0
+
     direction = str(input("Enter Direction: "))
-    x_gold = int(input("Enter X Coordinate: "))
-    y_gold = int(input("Enter Y Coordinate: "))
+    fails = 0
     print("Press control to start and stop")
 
 def process_and_save_data():
-    global x_list, y_list, x_gold, y_gold, coordinate, direction
+    global x_list, y_list, x_gold, y_gold, coordinate, direction, fails
     largest_diff_x = 0
     worst_x_coor = 0
     largest_diff_y = 0
@@ -150,7 +187,7 @@ def process_and_save_data():
     y_mode = statistics.mode(y_list)
     y_worst_coor = worst_y_coor
     y_largest_diff = largest_diff_y
-    csv_writer.writerow([coordinate, direction, x_gold, x_mean, x_largest_diff, y_gold, y_mean, y_largest_diff])
+    csv_writer.writerow([coordinate, direction, x_gold, x_mean, x_largest_diff, y_gold, y_mean, y_largest_diff, fails])
     x_list = []
     y_list = []
 
