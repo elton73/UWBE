@@ -3,6 +3,7 @@ import numpy as np
 import math
 import os
 from pathlib import Path
+import path
 from time import localtime, strftime
 import csv
 class Tag():
@@ -73,7 +74,7 @@ class Tag():
         return [sum_x/len(self.old_coordinates), sum_y/len(self.old_coordinates)]
 
     def setup_csv(self):
-        csv_dir = os.path.join(Path(r"C:\Users\ML-2\Documents\GitHub\UWBE"),
+        csv_dir = os.path.join(os.getcwd(),
                                "csv",
                                self.tag_id,
                                datetime.date.today().strftime('%Y-%m-%d'))
@@ -86,8 +87,3 @@ class Tag():
 
 def tag_search(tags, tag_id):
     return next((tag for tag in tags if tag.tag_id == tag_id), False)
-
-# if __name__ == '__main__':
-    # p1 = [0, 0]
-    # p2 = [1000, 1000]
-    # print(math.dist(p1, p2)/1000)
