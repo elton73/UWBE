@@ -1,3 +1,7 @@
+"""
+Conduct a normal experiment here
+"""
+
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -6,24 +10,15 @@ import keyboard
 import paho.mqtt.client as mqtt
 import json
 import ssl
-from modules.tags import Tag_Speed_Experiment, tag_search
+from modules.tags import Tag, tag_search
 import time
 fail_count = 0
-tag = None
-
 class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
-        global running, tag
-
-        tag_id = '10001009'
-        is_moving = define_movement()
-        threshold, timeframe, window = define_variables()
-        tag = Tag_Speed_Experiment(tag_id, is_moving)
-        tag.set_variables(threshold, timeframe, window)
-
+        global running
         client.loop_start()
         while True:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
@@ -34,22 +29,8 @@ class StartThread(threading.Thread):
                     print('Started')
                 else:
                     print('Stopped')
-
-                    save = str(input("Save (y/n)? "))
-                    if 'y' in save:
-                        tag.get_accuracy()
-                    elif 'q' in save:
-                        tag.csv_file.close()
-                        quit()
-
-
-                    tag.moving = define_movement()
-                    threshold, timeframe, window = define_variables()
-                    tag.set_variables(threshold, timeframe, window)
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
-                if tag:
-                    tag.csv_file.close()
                 # print(f"Failed {fail_count} times")
                 quit()
 
@@ -69,15 +50,16 @@ def on_connect(client, userdata, flags, rc):
 
 # Callback triggered by a new Pozyx data packet
 def on_message(client, userdata, msg):
-    global running, fail_count, tag
+    global running, fail_count
     datas = json.loads(msg.payload.decode())
     for data in datas:
         if not running:
             continue
         if not data['success']:
-            # print("Data Unsuccessful")
-            # print(data)
+            print("Data Unsuccessful")
+            print(data)
             continue
+        tag = tag_search(tags, data['tagId'])
         if not tag:
             continue
         tag.add_data(data)
@@ -105,37 +87,17 @@ client.connect(host, port=port)
 #setup global variables
 running = False
 
-def define_movement():
-    moving = str(input("Are you moving (y/n)? "))
-    if moving == 'y':
-        is_moving = True
-    elif moving == 'n':
-        is_moving = False
-    else:
-        if tag:
-            tag.csv_file.close()
-        quit()
-    return is_moving
-
-def define_variables():
-    threshold = float(input("Enter distance threshold in meters: "))
-    if threshold == "q":
-        if tag:
-            tag.csv_file.close()
-        quit()
-    timeframe = float(input("Enter timeframe in seconds: "))
-    if timeframe == "q":
-        if tag:
-            tag.csv_file.close()
-        quit()
-    window = float(input("Enter window length: "))
-    if window == "q":
-        if tag:
-            tag.csv_file.close()
-        quit()
-    return threshold,timeframe,window
-
 if __name__ == '__main__':
-    StartThread().start()
+    tags = []
+    inputs = True
+    while inputs:
+        tag = str(input("Enter s to start. Enter a tagId: "))
+        if tag == 's':
+            inputs = False
+        else:
+            tags.append(Tag(tag))
 
-# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\speed_experiment.py
+    if tags:
+        StartThread().start()
+
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\conduct_experiment.py
