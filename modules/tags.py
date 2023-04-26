@@ -1,3 +1,7 @@
+"""
+Tag class for tracking all data
+"""
+
 import datetime
 import numpy as np
 import math
@@ -6,9 +10,12 @@ from pathlib import Path
 import path
 from time import localtime, strftime
 import csv
+
 class Tag():
     def __init__(self, tag_id):
-        self.THRESHOLD = 10
+        self.THRESHOLD = 0.4 # distance between two points in meters
+        self.WINDOW = 15 # number of datapoints to use for averaging
+        self.TIMEFRAME = 5 # Time for comparing distance between two points in seconds
 
         self.tag_id = tag_id
         self.timestamp = None
@@ -35,20 +42,20 @@ class Tag():
         data = Data(coordinates, accelerometer, raw_time)
 
         self.old_data.append(data)
-        if len(self.old_data) < self.THRESHOLD:
+        if len(self.old_data) < self.WINDOW:
             return
         self.old_data.pop(0)
 
         #Compare positions every second to determine if patient has moved
-        index = int(self.THRESHOLD/2)-1
+        index = int(self.WINDOW/2)-1
         data_time = self.old_data[index].raw_time
         if not self.average_position:
             self.average_position = self.get_average_pos()
         if not self.time_start:
             self.time_start = data_time
-        elif (data_time-self.time_start) > 1:
+        elif (data_time-self.time_start) > self.TIMEFRAME:
             average_position = self.get_average_pos()
-            if float(math.dist(average_position, self.average_position)/1000) > 0.4: #movement threshold of 0.4
+            if float(math.dist(average_position, self.average_position))/1000.0 > self.THRESHOLD:
                 self.is_moving = True
             else:
                 self.is_moving = False
@@ -63,27 +70,6 @@ class Tag():
 
         self.csv_writer.writerow([self.tag_id, self.old_data[index].coordinates, self.old_data[index].accelerometer,
                                   self.is_moving, self.s, self.old_data[index].timestamp])
-
-
-
-    # def moving(self):
-    #     if len(self.old_coordinates) < 5:
-    #         self.average_position = self.coordinates
-    #         self.average_time = self.raw_time
-    #         return False
-    #     average_position = self.get_average_pos()
-    #     d = float(math.dist(average_position, self.average_position)/1000)
-    #     t = float(self.raw_time)-float(self.average_time)
-    #     self.s = d/t
-    #     # speed threshold of 0.5
-    #     if self.s > 0.5:
-    #         self.average_position = average_position
-    #         self.average_time = self.raw_time
-    #         return True
-    #     else:
-    #         self.average_position = average_position
-    #         self.average_time = self.raw_time
-    #         return False
 
     def get_average_pos(self):
         sum_x = 0
@@ -121,5 +107,8 @@ class Data():
             f"{local_datetime.strftime('%M')}:" \
             f"{local_datetime.strftime('%S')}"
 
+
+
 def tag_search(tags, tag_id):
     return next((tag for tag in tags if tag.tag_id == tag_id), False)
+
