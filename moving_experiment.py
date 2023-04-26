@@ -142,4 +142,4 @@ def define_variables():
 if __name__ == '__main__':
     StartThread().start()
 
-# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\speed_experiment.py
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py
