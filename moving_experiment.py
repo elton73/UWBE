@@ -10,7 +10,7 @@ import keyboard
 import paho.mqtt.client as mqtt
 import json
 import ssl
-from modules.tags import Tag_Speed_Experiment, tag_search
+from modules.experiments import Tag_Moving_Experiment
 import time
 fail_count = 0
 tag = None
@@ -25,7 +25,7 @@ class StartThread(threading.Thread):
         tag_id = '10001009'
         is_moving = define_movement()
         threshold, timeframe, window = define_variables()
-        tag = Tag_Speed_Experiment(tag_id, is_moving)
+        tag = Tag_Moving_Experiment(tag_id, is_moving)
         tag.set_variables(threshold, timeframe, window)
 
         client.loop_start()
@@ -122,22 +122,22 @@ def define_movement():
     return is_moving
 
 def define_variables():
-    threshold = float(input("Enter distance threshold in meters: "))
+    threshold = input("Enter distance threshold in meters: ")
     if threshold == "q":
         if tag:
             tag.csv_file.close()
         quit()
-    timeframe = float(input("Enter timeframe in seconds: "))
+    timeframe = input("Enter timeframe in seconds: ")
     if timeframe == "q":
         if tag:
             tag.csv_file.close()
         quit()
-    window = float(input("Enter window length: "))
+    window = input("Enter window length: ")
     if window == "q":
         if tag:
             tag.csv_file.close()
         quit()
-    return threshold,timeframe,window
+    return float(threshold), float(timeframe), float(window)
 
 if __name__ == '__main__':
     StartThread().start()

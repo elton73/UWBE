@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 import path
 from time import localtime, strftime
+from modules.tags import Data
 import csv
 
 # Modified version of Tag class for is_moving experiment
