@@ -53,6 +53,7 @@ def on_message(client, userdata, msg):
             continue
         if not data['success']:
             print("Data Unsuccessful")
+            print(data)
             continue
         tag = tag_search(tags, data['tagId'])
         if not tag:
