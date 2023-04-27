@@ -43,9 +43,15 @@ class Tag_Moving_Experiment():
         self.is_stationary_count = 0
         self.count = 0
 
+        self.moving_time = 0.0
+        self.stationary_time = 0.0
+        self.time_reference = None
+
         self.time_begin = None
         self.data_points = 0
         self.update_rate = None
+
+        self.tested_speed = None
 
     def add_data(self, data):
         try:
@@ -68,6 +74,8 @@ class Tag_Moving_Experiment():
         data_time = self.old_data[index].raw_time
         if not self.time_begin:
             self.time_begin = data_time
+        if not self.time_reference:
+            self.time_reference = data_time
         if not self.average_position:
             self.average_position = self.get_average_pos()
         if not self.time_start:
@@ -83,9 +91,12 @@ class Tag_Moving_Experiment():
             self.average_position = average_position
         if self.is_moving:
             self.is_moving_count += 1
+            self.moving_time += (data_time - self.time_reference)
         else:
             self.is_stationary_count += 1
+            self.stationary_time += (data_time-self.time_reference)
         self.count += 1
+        self.time_reference = data_time
 
 
         # debug
@@ -112,9 +123,9 @@ class Tag_Moving_Experiment():
         tag_csv = os.path.join(csv_dir, f'{strftime("%H:%M:%S", localtime()).replace(":", "-")}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
-        self.csv_writer.writerow(['tag_id', 'actually_moving', 'accuracy', 'time_elapsed', 'number_of_points',
-                                  'is_moving_count', 'is_stationary_count', 'window', 'threshold', 'timeframe',
-                                  'update rate'])
+        self.csv_writer.writerow(['tag_id', 'walking_speed', 'actually_moving', 'accuracy', 'time_elapsed',
+                                  'number_of_points', 'is_moving_count', 'is_stationary_count', 'moving_time',
+                                  'stationary_time', 'window', 'threshold', 'timeframe', 'update rate'])
 
     def get_accuracy(self):
         print(self.is_moving_count)
@@ -122,26 +133,33 @@ class Tag_Moving_Experiment():
         print(self.count)
         if self.moving:
             self.accuracy = float(self.is_moving_count/self.count)
-            print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin}, Datapoints: {self.count}")
+            print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: "
+                  f"{self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin}, Datapoints: {self.count}, "
+                  f"Time Spent Moving: {self.moving_time}")
         else:
             self.accuracy = float(self.is_stationary_count / self.count)
-            print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin}, Datapoints: {self.count}")
-
-
+            print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: "
+                  f"{self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin}, Datapoints: {self.count}, "
+                  f"Time Spent Staionary: {self.stationary_time}")
         self.csv_writer.writerow(
-            [self.tag_id, self.moving, self.accuracy, self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin,
-             self.count, self.is_moving_count, self.is_stationary_count, self.WINDOW, self.THRESHOLD, self.TIMEFRAME,
-             self.update_rate])
+            [self.tag_id, self.tested_speed, self.moving, self.accuracy, self.old_data[int(self.WINDOW/2)-1].raw_time - self.time_begin,
+             self.count, self.is_moving_count, self.is_stationary_count, self.moving_time, self.stationary_time,
+             self.WINDOW, self.THRESHOLD, self.TIMEFRAME, self.update_rate])
         print("Writing to CSV...")
-        self.time_begin = None
 
-    def set_variables(self, threshold, timeframe, window):
+    def set_variables(self, threshold, timeframe, window, speed):
         self.THRESHOLD = threshold
         self.TIMEFRAME = timeframe
         self.WINDOW = window
+        self.tested_speed = speed
         self.is_moving_count = 0
         self.is_stationary_count = 0
         self.count = 0
+        self.old_data = []
+        self.moving_time = 0.0
+        self.stationary_time = 0.0
+        self.time_reference = None
+        self.time_begin = None
 
 
 

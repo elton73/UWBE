@@ -1,5 +1,5 @@
 """
-Conduct a movement experiment here
+Conduct a movement experiment here. Only works with a single tag.
 """
 
 import os
@@ -11,7 +11,6 @@ import paho.mqtt.client as mqtt
 import json
 import ssl
 from modules.experiments import Tag_Moving_Experiment
-from modules.tags import tag_search
 import time
 fail_count = 0
 tag = None
@@ -26,9 +25,9 @@ class StartThread(threading.Thread):
 
         tag_id = '10001009'
         is_moving = define_movement()
-        threshold, timeframe, window = define_variables()
+        threshold, timeframe, window, speed = define_variables()
         tag = Tag_Moving_Experiment(tag_id, is_moving)
-        tag.set_variables(threshold, timeframe, window)
+        tag.set_variables(threshold, timeframe, window, speed)
 
         client.loop_start()
         while True:
@@ -50,8 +49,8 @@ class StartThread(threading.Thread):
 
 
                     tag.moving = define_movement()
-                    threshold, timeframe, window = define_variables()
-                    tag.set_variables(threshold, timeframe, window)
+                    threshold, timeframe, window, speed = define_variables()
+                    tag.set_variables(threshold, timeframe, window, speed)
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
                 if tag:
@@ -139,9 +138,14 @@ def define_variables():
         if tag:
             tag.csv_file.close()
         quit()
-    return float(threshold), float(timeframe), float(window)
+    speed = input("Enter walking speed: ")
+    if speed == "q":
+        if tag:
+            tag.csv_file.close()
+
+    return float(threshold), float(timeframe), float(window), speed
 
 if __name__ == '__main__':
     StartThread().start()
 
-# C:\Users\ML-3\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-3\Documents\GitHub\UWBE\moving_experiment.py
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py
