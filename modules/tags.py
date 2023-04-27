@@ -39,7 +39,8 @@ class Tag():
             return
         coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         raw_time = data['timestamp']
-        data = Data(coordinates, accelerometer, raw_time)
+        update_rate = data['data']['metrics']['rates']['update']
+        data = Data(coordinates, accelerometer, raw_time, update_rate)
 
         self.old_data.append(data)
         if len(self.old_data) < self.WINDOW:
@@ -69,7 +70,8 @@ class Tag():
                 f"Moving: {self.is_moving}, Time: {self.old_data[index].timestamp}")
 
         self.csv_writer.writerow([self.tag_id, self.old_data[index].coordinates, self.old_data[index].accelerometer,
-                                  self.is_moving, self.s, self.old_data[index].timestamp])
+                                  self.is_moving, self.average_position, self.old_data[index].timestamp,
+                                  self.old_data[index].timestamp])
 
     def get_average_pos(self):
         sum_x = 0
@@ -89,15 +91,17 @@ class Tag():
         tag_csv = os.path.join(csv_dir, f'{strftime("%H:%M:%S", localtime()).replace(":", "-")}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
-        self.csv_writer.writerow(['tag_id', 'coordinates', 'accelerometer', 'moving', 'speed', 'timestamp'])
+        self.csv_writer.writerow(['tag_id', 'coordinates', 'accelerometer', 'moving', 'average_position', 'timestamp',
+                                  'update rate'])
 
 class Data():
-    def __init__(self, c, a ,r):
+    def __init__(self, c, a ,r, u):
         self.coordinates = c
         self.x = c[0]
         self.y = c[1]
         self.accelerometer = a
         self.raw_time = r
+        self.update_rate = u
         self.timestamp = self.get_timestamp()
 
     def get_timestamp(self):

@@ -11,16 +11,18 @@ import paho.mqtt.client as mqtt
 import json
 import ssl
 from modules.experiments import Tag_Moving_Experiment
+from modules.tags import tag_search
 import time
 fail_count = 0
 tag = None
+tag_id = None
 
 class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
     def run(self):
-        global running, tag
+        global running, tag, tag_id
 
         tag_id = '10001009'
         is_moving = define_movement()
@@ -82,7 +84,7 @@ def on_message(client, userdata, msg):
             # print("Data Unsuccessful")
             # print(data)
             continue
-        if not tag:
+        if not tag or data['tagId'] != tag_id:
             continue
         tag.add_data(data)
         #     except Exception as e:
@@ -142,4 +144,4 @@ def define_variables():
 if __name__ == '__main__':
     StartThread().start()
 
-# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py
+# C:\Users\ML-3\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-3\Documents\GitHub\UWBE\moving_experiment.py

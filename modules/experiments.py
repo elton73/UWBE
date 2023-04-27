@@ -45,6 +45,7 @@ class Tag_Moving_Experiment():
 
         self.time_begin = None
         self.data_points = 0
+        self.update_rate = None
 
     def add_data(self, data):
         try:
@@ -54,7 +55,8 @@ class Tag_Moving_Experiment():
         self.data_points += 1
         coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         self.raw_time = data['timestamp']
-        data = Data(coordinates, accelerometer, self.raw_time)
+        self.update_rate = data['data']['metrics']['rates']['update']
+        data = Data(coordinates, accelerometer, self.raw_time, self.update_rate)
 
         self.old_data.append(data)
         if len(self.old_data) < self.WINDOW:
@@ -89,7 +91,8 @@ class Tag_Moving_Experiment():
         # debug
         if self.tag_id == "10001009":
             print(
-                f"Moving: {self.is_moving}, Distance Travelled: {self.temp}, Average Pos: {self.average_position}")
+                f"Moving: {self.is_moving}, Distance Travelled: {self.temp}, Average Pos: {self.average_position}, "
+                f"Raw Pos: {self.old_data[int(self.WINDOW/2)-1].coordinates}")
 
     def get_average_pos(self):
         sum_x = 0
@@ -109,7 +112,9 @@ class Tag_Moving_Experiment():
         tag_csv = os.path.join(csv_dir, f'{strftime("%H:%M:%S", localtime()).replace(":", "-")}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
-        self.csv_writer.writerow(['tag_id', 'actually_moving', 'accuracy', 'time_elapsed', 'number_of_points', 'is_moving_count', 'is_stationary_count', 'window', 'threshold', 'timeframe'])
+        self.csv_writer.writerow(['tag_id', 'actually_moving', 'accuracy', 'time_elapsed', 'number_of_points',
+                                  'is_moving_count', 'is_stationary_count', 'window', 'threshold', 'timeframe',
+                                  'update rate'])
 
     def get_accuracy(self):
         print(self.is_moving_count)
@@ -124,8 +129,11 @@ class Tag_Moving_Experiment():
 
 
         self.csv_writer.writerow(
-            [self.tag_id, self.moving, self.accuracy, self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin, self.count, self.is_moving_count, self.is_stationary_count, self.WINDOW, self.THRESHOLD, self.TIMEFRAME])
+            [self.tag_id, self.moving, self.accuracy, self.old_data[int(self.WINDOW/2)-1].raw_time-self.time_begin,
+             self.count, self.is_moving_count, self.is_stationary_count, self.WINDOW, self.THRESHOLD, self.TIMEFRAME,
+             self.update_rate])
         print("Writing to CSV...")
+        self.time_begin = None
 
     def set_variables(self, threshold, timeframe, window):
         self.THRESHOLD = threshold
