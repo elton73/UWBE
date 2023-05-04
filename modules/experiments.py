@@ -14,7 +14,7 @@ from modules.accuracy import Accuracy
 # Modified version of Tag class for is_moving experiment
 class Tag_Moving(Accuracy):
     def __init__(self, tag_id):
-        Accuracy.__init__()
+        super(Accuracy, self).__init__()
         self.THRESHOLD = None # distance between two points in meters
         self.AVERAGING_WINDOW = None # number of datapoints to use for averaging
         self.TIMEFRAME = None # Time for comparing distance between two points in seconds
@@ -33,7 +33,6 @@ class Tag_Moving(Accuracy):
 
         self.csv_file = None
         self.csv_writer = None
-        self.setup_csv()
         self.s = None
 
         self.is_moving_count = 0
@@ -72,16 +71,15 @@ class Tag_Moving(Accuracy):
 
         #Compare positions to determine if patient has moved
         data_time = self.old_data[self.index].raw_time
-        if not self.time_begin:
-            self.time_begin = data_time
-        if not self.time_reference:
-            self.time_reference = data_time
         if not self.average_position:
             self.average_position = self.get_average_pos()
         if not self.time_start:
             self.time_start = data_time
         elif (data_time-self.time_start) > self.TIMEFRAME:
             self.setup_complete = True
+            if not self.time_begin:
+                self.time_begin = data_time
+                self.time_reference = data_time
             average_position = self.get_average_pos()
             self.average_distance_travelled = float(math.dist(average_position, self.average_position))/1000.0
             if self.average_distance_travelled > self.THRESHOLD:
@@ -119,10 +117,11 @@ class Tag_Moving(Accuracy):
                                self.tag_id,
                                "experiments",
                                "moving_experiment",
-                               "ILS")
+                               "ILS",
+                               datetime.date.today().strftime('%Y-%m-%d'))
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)
-        tag_csv = os.path.join(csv_dir, f'{strftime("%H:%M:%S", localtime()).replace(":", "-")}.csv')
+        tag_csv = os.path.join(csv_dir, f'{strftime("T%H-%M-%S", localtime())}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
         self.csv_writer.writerow(['tag_id', 'comments', 'accuracy (moving_time)', 'Error (seconds)',
@@ -154,27 +153,29 @@ class Tag_Moving(Accuracy):
         print(f"Moving_Count: {self.is_moving_count}, Stationary_Count: {self.is_stationary_count},"
               f"Total_Count: {self.count}")
         try:
-            self.accuracy = float(self.is_moving_count/self.count)
             print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {time_elapsed}, Time Spent Moving: "
-                  f"{self.moving_time}, Actual Time Moving: {gold_standard}, datapoints = {self.count}")
+                  f"{self.moving_time}, Actual Time Moving: {gold_standard}, "
+                  f"Time Spent Stationary: {self.stationary_time}, datapoints = {self.count}")
 
+            if not self.csv_file:
+                self.setup_csv()
             self.write_csv()
             print("Writing to CSV...")
         except:
-            print("Something Went Wrong")
+            print("Something Went Wrong Writing To CSV")
 
     def write_csv(self):
         self.csv_writer.writerow(
-            [self.tag_id, self.comments, self.accuracy, self.error, self.gold_standard, self.moving_time,
-             self.stationary_time, self.old_data[self.index].raw_time - self.time_begin,
+            [self.tag_id, self.comments, self.accuracy, self.moving_time-self.gold_standard, self.gold_standard,
+             self.moving_time, self.stationary_time, self.old_data[self.index].raw_time - self.time_begin,
              self.AVERAGING_WINDOW, self.THRESHOLD, self.TIMEFRAME, self.update_rate,
              self.old_data[self.index].timestamp])
 
-    def set_variables(self, threshold, timeframe, window, speed):
+    def set_variables(self, threshold, timeframe, window, comments):
         self.THRESHOLD = threshold
         self.TIMEFRAME = timeframe
         self.AVERAGING_WINDOW = window
-        self.tested_speed = speed
+        self.comments = comments
         self.is_moving_count = 0
         self.is_stationary_count = 0
         self.count = 0

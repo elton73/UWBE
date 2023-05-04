@@ -13,5 +13,5 @@ class Accuracy():
         return self.true_negatives/(self.true_negatives+self.false_positives)
 
     def get_accuracy(self):
-        return (self.true_positives+self.true_negatives)/(self.true_positives+self.true_negatives+self.false_positives+
-                                                          self.false_negatives)
+        return ((self.true_positives+self.true_negatives) /
+                (self.true_positives+self.true_negatives+self.false_positives+self.false_negatives))

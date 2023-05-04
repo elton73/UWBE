@@ -94,62 +94,89 @@ class StartThread(threading.Thread):
                     save = str(input("Save (y/n)? "))
                     if 'y' in save:
                         self.define_gold_standard()
-                        tag.get_output(self.gold_standard)
+                        try:
+                            tag.get_output(self.gold_standard)
+                        except:
+                            print("Save Failed")
                     elif 'q' in save:
-                        tag.csv_file.close()
-                        quit()
+                        if tag and tag.csv_file:
+                            tag.csv_file.close()
+                        raise SystemExit
                     self.define_variables()
                     tag.set_variables(self.distance_threshold, self.timeframe, self.averaging_window,
                                            self.comments)
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
-                if tag:
+                if tag and tag.csv_file:
                     tag.csv_file.close()
-                quit()
+                raise SystemExit
 
     def define_variables(self):
-        self.distance_threshold = input("Enter distance threshold in meters: ")
-        if self.distance_threshold == "q":
-            if tag:
-                tag.csv_file.close()
-            quit()
-        self.timeframe = input("Enter timeframe in seconds: ")
-        if self.timeframe == "q":
-            if tag:
-                tag.csv_file.close()
-            quit()
-        self.averaging_window = input("Enter window length: ")
-        if self.averaging_window == "q":
-            if tag:
-                tag.csv_file.close()
-            quit()
-        self.comments = input("Enter comments: ")
-        if self.comments == "q":
-            if tag:
-                tag.csv_file.close()
-            quit()
+        valid_input = False
+        while not valid_input:
+            distance_threshold = input("Enter distance threshold in meters: ")
+            if distance_threshold == "q":
+                if tag and tag.csv_file:
+                    tag.csv_file.close()
+                raise SystemExit
+            try:
+                self.distance_threshold = float(distance_threshold)
+            except:
+                print("Invalid distance threshold. Please enter float value.")
+
+            timeframe = input("Enter timeframe in seconds: ")
+            if timeframe == "q":
+                if tag and tag.csv_file:
+                    tag.csv_file.close()
+                raise SystemExit
+            try:
+                self.timeframe = float(timeframe)
+            except:
+                print("Invalid timeframe. Please enter float value.")
+
+            averaging_window = input("Enter window length: ")
+            if averaging_window == "q":
+                if tag:
+                    if tag.csv_file:
+                        tag.csv_file.close()
+                raise SystemExit
+            try:
+                self.averaging_window = int(averaging_window)
+            except:
+                print("Invalid averaging_window. Please enter int value.")
+
+            comments = input("Enter comments: ")
+            if comments == "q":
+                if tag and tag.csv_file:
+                    tag.csv_file.close()
+                raise SystemExit
+            self.comments = comments
+            valid_input = True
 
     def define_gold_standard(self):
         valid_input = False
-        gold_standard = None
         while not valid_input:
-            user_input = input("How long was the tag actually moving (seconds)?")
+            user_input = input("How long was the tag actually moving (seconds)? ")
             if user_input == "q":
-                if tag:
+                if tag and tag.csv_file:
                     tag.csv_file.close()
-                quit()
+                raise SystemExit
             try:
                 gold_standard = float(user_input)
-                valid_input = True
+                if gold_standard >= (tag.old_data[tag.index].raw_time - tag.time_begin):
+                    print(f"Warning! Gold standard time is greater than elapsed time.")
+                    continue
                 self.gold_standard = gold_standard
+                valid_input = True
             except:
                 print("Invalid Input. Please Enter A Decimal Number. Enter q to quit.")
 
 
 if __name__ == '__main__':
-    global tag
     tag_id = input("Enter tag id: ")
     if tag_id == "q":
-        quit()
+        raise SystemExit
     tag = Tag_Moving(tag_id)
     StartThread().start()
+
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py
