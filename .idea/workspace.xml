@@ -5,16 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0dddaa04-389a-4820-9c36-c5e213c33295" name="Changes" comment="Adjusted is_moving algorithm">
-      <change beforePath="$PROJECT_DIR$/.idea/UWBE.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/UWBE.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/hayden_experiment.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conduct_experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/conduct_experiment.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/experiments.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/experiments.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/tags.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tags.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/moving_experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/moving_experiment.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -32,13 +40,18 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ML-3/Documents/GitHub/DeviceDataPlatform&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ML-2/Documents/GitHub/UWBE&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE" />
+    </key>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -48,7 +61,11 @@
       <option name="presentableId" value="Default" />
       <updated>1682607543271</updated>
       <workItem from="1682607545482" duration="3226000" />
-      <workItem from="1682611000777" duration="5194000" />
+      <workItem from="1682611000777" duration="5238000" />
+      <workItem from="1683042521389" duration="2496000" />
+      <workItem from="1683131852591" duration="5139000" />
+      <workItem from="1683142774553" duration="2862000" />
+      <workItem from="1683145900319" duration="3173000" />
     </task>
     <servers />
   </component>
@@ -59,10 +76,12 @@
     <SUITE FILE_PATH="coverage/UWBE$get_data_test.coverage" NAME="get_data_test Coverage Results" MODIFIED="1681252071913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$csv.coverage" NAME="csv Coverage Results" MODIFIED="1681918897414" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$get_data.coverage" NAME="get_data Coverage Results" MODIFIED="1681501281569" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$tags.coverage" NAME="tags Coverage Results" MODIFIED="1682446002512" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
+    <SUITE FILE_PATH="coverage/UWBE$hayden_experiment.coverage" NAME="hayden_experiment Coverage Results" MODIFIED="1683136215258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$tags.coverage" NAME="tags Coverage Results" MODIFIED="1683043751816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$conduct_experiment.coverage" NAME="conduct_experiment Coverage Results" MODIFIED="1682438243611" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$test.coverage" NAME="test Coverage Results" MODIFIED="1682446053059" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$test.coverage" NAME="test Coverage Results" MODIFIED="1683149326085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$logger.coverage" NAME="logger Coverage Results" MODIFIED="1680726157449" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$moving.coverage" NAME="moving Coverage Results" MODIFIED="1682438647506" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
+    <SUITE FILE_PATH="coverage/UWBE$experiments.coverage" NAME="experiments Coverage Results" MODIFIED="1683133633150" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
   </component>
 </project>

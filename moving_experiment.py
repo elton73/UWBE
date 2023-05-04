@@ -86,11 +86,6 @@ def on_message(client, userdata, msg):
         if not tag or data['tagId'] != tag_id:
             continue
         tag.add_data(data)
-        #     except Exception as e:
-        #         print("Failed")
-        #         print(e)
-        #         print(data)
-        #         fail_count += 1
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
     print("Press control to start and stop. Press q to quit")

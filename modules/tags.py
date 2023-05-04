@@ -9,13 +9,14 @@ import os
 from pathlib import Path
 import path
 from time import localtime, strftime
+import time
 import csv
 
 class Tag():
     def __init__(self, tag_id):
         self.THRESHOLD = 0.4 # distance between two points in meters
-        self.WINDOW = 15 # number of datapoints to use for averaging
-        self.TIMEFRAME = 5 # Time for comparing distance between two points in seconds
+        self.AVERAGING_WINDOW = 12 # number of datapoints to use for averaging
+        self.TIMEFRAME = 2 # Time for comparing distance between two points in seconds
 
         self.tag_id = tag_id
         self.timestamp = None
@@ -30,26 +31,26 @@ class Tag():
         self.csv_file = None
         self.csv_writer = None
         self.setup_csv()
+        self.index = int(self.AVERAGING_WINDOW/2)
         self.s = None
 
     def add_data(self, data):
-        try:
-            accelerometer = data['data']['tagData']['accelerometer'][0]
-        except:
-            return
+        # try:
+        #     accelerometer = data['data']['tagData']['accelerometer'][0]
+        # except:
+        #     return
         coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         raw_time = data['timestamp']
         update_rate = data['data']['metrics']['rates']['update']
-        data = Data(coordinates, accelerometer, raw_time, update_rate)
+        data = Data(coordinates, 0, raw_time, update_rate)
 
         self.old_data.append(data)
-        if len(self.old_data) < self.WINDOW:
+        if len(self.old_data) < self.AVERAGING_WINDOW:
             return
         self.old_data.pop(0)
 
         #Compare positions every second to determine if patient has moved
-        index = int(self.WINDOW/2)-1
-        data_time = self.old_data[index].raw_time
+        data_time = self.old_data[self.index].raw_time
         if not self.average_position:
             self.average_position = self.get_average_pos()
         if not self.time_start:
@@ -66,12 +67,15 @@ class Tag():
         # debug
         if self.tag_id == "10001009":
             print(
-                f"Coordinates: [{self.old_data[index].coordinates}], Accel: {self.old_data[index].accelerometer}, "
-                f"Moving: {self.is_moving}, Time: {self.old_data[index].timestamp}")
+                f"Coordinates: [{self.old_data[self.index].coordinates}], Accel: {self.old_data[self.index].accelerometer}, "
+                f"Moving: {self.is_moving}, Time: {self.old_data[self.index].timestamp}")
 
-        self.csv_writer.writerow([self.tag_id, self.old_data[index].coordinates, self.old_data[index].accelerometer,
-                                  self.is_moving, self.average_position, self.old_data[index].timestamp,
-                                  self.old_data[index].timestamp])
+        self.write_csv()
+
+    def write_csv(self):
+        self.csv_writer.writerow([self.tag_id, self.old_data[self.index].coordinates, self.old_data[self.index].accelerometer,
+                                  self.is_moving, self.average_position, self.old_data[self.index].timestamp,
+                                  self.old_data[self.index].update_rate])
 
     def get_average_pos(self):
         sum_x = 0
@@ -88,14 +92,14 @@ class Tag():
                                datetime.date.today().strftime('%Y-%m-%d'))
         if not os.path.exists(csv_dir):
             os.makedirs(csv_dir)
-        tag_csv = os.path.join(csv_dir, f'{strftime("%H:%M:%S", localtime()).replace(":", "-")}.csv')
+        tag_csv = os.path.join(csv_dir, f'{strftime("T%H-%M-%S", localtime())}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
-        self.csv_writer.writerow(['tag_id', 'coordinates', 'accelerometer', 'moving', 'average_position', 'timestamp',
+        self.csv_writer.writerow(['tag_id', 'coordinates', 'accelerometer', 'moving', 'average_position', 'datetime',
                                   'update rate'])
 
 class Data():
-    def __init__(self, c, a ,r, u):
+    def __init__(self, c, a, r, u):
         self.coordinates = c
         self.x = c[0]
         self.y = c[1]
@@ -107,12 +111,16 @@ class Data():
     def get_timestamp(self):
         local_datetime = datetime.datetime.fromtimestamp(self.raw_time)
         return \
-            f"{local_datetime.strftime('%H')}:" \
-            f"{local_datetime.strftime('%M')}:" \
+            f"{local_datetime.strftime('%Y')}-" \
+            f"{local_datetime.strftime('%m')}-" \
+            f"{local_datetime.strftime('%d T')}" \
+            f"{local_datetime.strftime('%H')}-" \
+            f"{local_datetime.strftime('%M')}-" \
             f"{local_datetime.strftime('%S')}"
 
 
 
 def tag_search(tags, tag_id):
     return next((tag for tag in tags if tag.tag_id == tag_id), False)
+
 

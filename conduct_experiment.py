@@ -12,7 +12,8 @@ import json
 import ssl
 from modules.tags import Tag, tag_search
 import time
-fail_count = 0
+
+#Main Thread
 class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
@@ -31,7 +32,6 @@ class StartThread(threading.Thread):
                     print('Stopped')
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
-                # print(f"Failed {fail_count} times")
                 quit()
 
 #setup connection
@@ -63,11 +63,6 @@ def on_message(client, userdata, msg):
         if not tag:
             continue
         tag.add_data(data)
-        #     except Exception as e:
-        #         print("Failed")
-        #         print(e)
-        #         print(data)
-        #         fail_count += 1
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
     print("Press control to start and stop. Press q to quit")
@@ -100,4 +95,4 @@ if __name__ == '__main__':
     if tags:
         StartThread().start()
 
-# C:\Users\ML-3\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-3\Documents\GitHub\UWBE\conduct_experiment.py
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\conduct_experiment.py
