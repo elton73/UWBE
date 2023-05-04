@@ -11,9 +11,9 @@ import csv
 class Tag():
     def __init__(self, tag_id):
 
-        self.THRESHOLD = 0.4 # distance between two points in meters
-        self.AVERAGING_WINDOW = 12 # number of datapoints to use for averaging
-        self.TIMEFRAME = 2 # Time for comparing distance between two points in seconds
+        self.THRESHOLD = 0.6  # distance between two points in meters
+        self.TIMEFRAME = 2  # Time for comparing distance between two points in seconds
+        self.AVERAGING_WINDOW = 24  # number of datapoints to use for averaging
 
         self.tag_id = tag_id
         self.timestamp = None
@@ -27,19 +27,18 @@ class Tag():
 
         self.csv_file = None
         self.csv_writer = None
-        self.setup_csv()
         self.index = int(self.AVERAGING_WINDOW/2)
         self.s = None
 
     def add_data(self, data):
-        # try:
-        #     accelerometer = data['data']['tagData']['accelerometer'][0]
-        # except:
-        #     return
+        try:
+            accelerometer = data['data']['tagData']['accelerometer'][0]
+        except:
+            return
         coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         raw_time = data['timestamp']
         update_rate = data['data']['metrics']['rates']['update']
-        data = Data(coordinates, 0, raw_time, update_rate)
+        data = Data(coordinates, accelerometer, raw_time, update_rate)
 
         self.old_data.append(data)
         if len(self.old_data) < self.AVERAGING_WINDOW:
@@ -67,6 +66,8 @@ class Tag():
                 f"Coordinates: [{self.old_data[self.index].coordinates}], Accel: {self.old_data[self.index].accelerometer}, "
                 f"Moving: {self.is_moving}, Time: {self.old_data[self.index].timestamp}")
 
+        if not self.csv_file:
+            self.setup_csv()
         self.write_csv()
 
     def write_csv(self):

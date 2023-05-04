@@ -13,13 +13,28 @@ import ssl
 from modules.tags import Tag, tag_search
 import time
 
-#globals
-running = False
-tags = []
+#Main Thread
+class StartThread(threading.Thread):
+    def __init__(self):
+        threading.Thread.__init__(self)
 
-"""
-Setup Pozyx Connection
-"""
+    def run(self):
+        global running
+        client.loop_start()
+        while True:
+            if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
+                time.sleep(1.0)
+                keyboard.release('ctrl')
+                running = not running  # Toggle the running state
+                if running:
+                    print('Started')
+                else:
+                    print('Stopped')
+            elif keyboard.is_pressed('q'):
+                client.loop_stop()
+                raise SystemExit
+
+#setup connection
 tenant_id = "63ee6a286f3dc2ff641a73e2"
 api_key = "13e46ac5-9788-46d0-89a4-111db4e6d858"
 
@@ -35,14 +50,12 @@ def on_connect(client, userdata, flags, rc):
 
 # Callback triggered by a new Pozyx data packet
 def on_message(client, userdata, msg):
-    global running
+    global running, fail_count
     datas = json.loads(msg.payload.decode())
     for data in datas:
         if not running:
             continue
         if not data['success']:
-            print("Data Unsuccessful")
-            print(data)
             continue
         tag = tag_search(tags, data['tagId'])
         if not tag:
@@ -64,33 +77,14 @@ client.on_message = on_message
 client.on_subscribe = on_subscribe
 client.connect(host, port=port)
 
-"""
-Threading
-"""
-#Main Thread
-class StartThread(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-    def run(self):
-        global running
-        client.loop_start()
-        while True:
-            if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
-                time.sleep(1.0)
-                keyboard.release('ctrl')
-                running = not running  # Toggle the running state
-                if running:
-                    print('Started')
-                else:
-                    print('Stopped')
-            elif keyboard.is_pressed('q'):
-                client.loop_stop()
-                quit()
+#setup global variables
+running = False
 
 if __name__ == '__main__':
+    tags = []
     inputs = True
     while inputs:
-        tag = str(input("(Enter s to start. Enter q to quit) Please enter a Tag Id: "))
+        tag = str(input("(Enter s to start. Enter q to quit) Please enter a tagId: "))
         if tag == 's':
             inputs = False
         elif tag == "q":
@@ -102,3 +96,5 @@ if __name__ == '__main__':
             tags.append(Tag(tag))
     if tags:
         StartThread().start()
+
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\conduct_experiment.py
