@@ -3,17 +3,14 @@ Tag class for tracking all data
 """
 
 import datetime
-import numpy as np
 import math
 import os
-from pathlib import Path
-import path
 from time import localtime, strftime
-import time
 import csv
 
 class Tag():
     def __init__(self, tag_id):
+
         self.THRESHOLD = 0.4 # distance between two points in meters
         self.AVERAGING_WINDOW = 12 # number of datapoints to use for averaging
         self.TIMEFRAME = 2 # Time for comparing distance between two points in seconds

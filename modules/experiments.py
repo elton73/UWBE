@@ -3,21 +3,18 @@ Classes for specific experiments
 """
 
 import datetime
-import numpy as np
 import math
 import os
-from pathlib import Path
-import path
 import time
 from time import localtime, strftime
 from modules.tags import Data
 import csv
+from modules.accuracy import Accuracy
 
 # Modified version of Tag class for is_moving experiment
-class Tag_Moving_Experiment():
-    def __init__(self, tag_id, moving):
-        self.moving = moving
-
+class Tag_Moving(Accuracy):
+    def __init__(self, tag_id):
+        Accuracy.__init__()
         self.THRESHOLD = None # distance between two points in meters
         self.AVERAGING_WINDOW = None # number of datapoints to use for averaging
         self.TIMEFRAME = None # Time for comparing distance between two points in seconds
@@ -32,14 +29,13 @@ class Tag_Moving_Experiment():
 
         self.average_position = None
         self.average_time = None
-        self.temp = 0
+        self.average_distance_travelled = 0
 
         self.csv_file = None
         self.csv_writer = None
         self.setup_csv()
         self.s = None
 
-        self.accuracy = 0
         self.is_moving_count = 0
         self.is_stationary_count = 0
         self.count = 0
@@ -54,18 +50,20 @@ class Tag_Moving_Experiment():
         self.update_rate = None
         self.index = None
 
-        self.tested_speed = None
+        self.comments = None
+        self.accuracy = None
+        self.gold_standard = None
 
     def add_data(self, data):
-        # try:
-        #     accelerometer = data['data']['tagData']['accelerometer'][0]
-        # except:
-        #     return
+        try:
+            accelerometer = data['data']['tagData']['accelerometer'][0]
+        except:
+            return
         self.data_points += 1
         coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         self.raw_time = data['timestamp']
         self.update_rate = data['data']['metrics']['rates']['update']
-        data = Data(coordinates, 0, self.raw_time, self.update_rate)
+        data = Data(coordinates, accelerometer, self.raw_time, self.update_rate)
 
         self.old_data.append(data)
         if len(self.old_data) < self.AVERAGING_WINDOW:
@@ -85,8 +83,8 @@ class Tag_Moving_Experiment():
         elif (data_time-self.time_start) > self.TIMEFRAME:
             self.setup_complete = True
             average_position = self.get_average_pos()
-            self.temp = float(math.dist(average_position, self.average_position))/1000.0
-            if float(math.dist(average_position, self.average_position))/1000.0 > self.THRESHOLD:
+            self.average_distance_travelled = float(math.dist(average_position, self.average_position))/1000.0
+            if self.average_distance_travelled > self.THRESHOLD:
                 self.is_moving = True
             else:
                 self.is_moving = False
@@ -102,12 +100,10 @@ class Tag_Moving_Experiment():
             self.count += 1
             self.time_reference = data_time
 
-
         # debug
         if self.tag_id == "10001009":
             print(
-                f"Moving: {self.is_moving}, Distance Travelled: {self.temp}, Average Pos: {self.average_position}, "
-                f"Raw Pos: {self.old_data[self.index].coordinates}")
+                f"Moving: {self.is_moving}, Distance Travelled: {self.average_distance_travelled}")
 
     def get_average_pos(self):
         sum_x = 0
@@ -121,6 +117,7 @@ class Tag_Moving_Experiment():
         csv_dir = os.path.join(os.getcwd(),
                                "csv",
                                self.tag_id,
+                               "experiments",
                                "moving_experiment",
                                "ILS")
         if not os.path.exists(csv_dir):
@@ -128,25 +125,39 @@ class Tag_Moving_Experiment():
         tag_csv = os.path.join(csv_dir, f'{strftime("%H:%M:%S", localtime()).replace(":", "-")}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
-        self.csv_writer.writerow(['tag_id', 'walking_speed', 'actually_moving', 'accuracy', 'time_elapsed',
-                                  'number_of_points', 'is_moving_count', 'is_stationary_count', 'moving_time',
-                                  'stationary_time', 'window', 'threshold', 'timeframe', 'update rate', 'datetime'])
+        self.csv_writer.writerow(['tag_id', 'comments', 'accuracy (moving_time)', 'Error (seconds)',
+                                  'gold_standard_moving_time', 'moving_time', 'stationary_time', 'total_time',
+                                  'window', 'threshold', 'timeframe', 'update rate', 'date recorded'])
 
-    def get_accuracy(self):
-        print(self.is_moving_count)
-        print(self.is_stationary_count)
-        print(self.count)
+    def get_output(self, gold_standard):
+        self.gold_standard = gold_standard
+        time_elapsed = self.old_data[self.index].raw_time - self.time_begin
+
+        #debug
+        if self.moving_time > time_elapsed:
+            print("Error. Moving time is greater than time elapsed.")
+            quit()
+
+        if self.moving_time >= gold_standard:
+            self.true_positives = gold_standard
+            self.false_positives = self.moving_time-gold_standard
+            self.true_negatives = time_elapsed-self.moving_time
+            self.false_negatives = 0
+
+        elif self.moving_time < gold_standard:
+            self.true_positives = self.moving_time
+            self.false_positives = 0
+            self.true_negatives = time_elapsed-gold_standard
+            self.false_negatives = gold_standard-self.moving_time
+        self.accuracy = self.get_accuracy()
+
+        print(f"Moving_Count: {self.is_moving_count}, Stationary_Count: {self.is_stationary_count},"
+              f"Total_Count: {self.count}")
         try:
-            if self.moving:
-                self.accuracy = float(self.is_moving_count/self.count)
-                print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: "
-                      f"{self.old_data[self.index].raw_time - self.time_begin}, Datapoints: {self.count}, "
-                      f"Time Spent Moving: {self.moving_time}")
-            else:
-                self.accuracy = float(self.is_stationary_count / self.count)
-                print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: "
-                      f"{self.old_data[self.index].raw_time - self.time_begin}, Datapoints: {self.count}, "
-                      f"Time Spent Staionary: {self.stationary_time}")
+            self.accuracy = float(self.is_moving_count/self.count)
+            print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {time_elapsed}, Time Spent Moving: "
+                  f"{self.moving_time}, Actual Time Moving: {gold_standard}, datapoints = {self.count}")
+
             self.write_csv()
             print("Writing to CSV...")
         except:
@@ -154,8 +165,8 @@ class Tag_Moving_Experiment():
 
     def write_csv(self):
         self.csv_writer.writerow(
-            [self.tag_id, self.tested_speed, self.moving, self.accuracy, self.old_data[self.index].raw_time - self.time_begin,
-             self.count, self.is_moving_count, self.is_stationary_count, self.moving_time, self.stationary_time,
+            [self.tag_id, self.comments, self.accuracy, self.error, self.gold_standard, self.moving_time,
+             self.stationary_time, self.old_data[self.index].raw_time - self.time_begin,
              self.AVERAGING_WINDOW, self.THRESHOLD, self.TIMEFRAME, self.update_rate,
              self.old_data[self.index].timestamp])
 
@@ -178,13 +189,19 @@ class Tag_Moving_Experiment():
         self.time_start = None
         self.average_position = None
         self.average_time = None
-        self.temp = 0
+        self.average_distance_travelled = 0
         self.s = None
-        self.accuracy = 0
         self.data_points = 0
         self.update_rate = None
         self.is_moving = None
         self.setup_complete = False
+        self.gold_standard = None
+        self.accuracy = None
+        self.true_negatives = None
+        self.true_positives = None
+        self.false_positives = None
+        self.false_negatives = None
+
 class Tag_Positioning():
     def __init__(self, tag_id):
         self.THRESHOLD = 0.4 # distance between two points in meters
@@ -214,12 +231,13 @@ class Tag_Positioning():
             return
         x, y = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         raw_time = data['timestamp']
+
         # debug
         if self.tag_id == "10001009":
             print(
                 f"Coordinates: [{x}, {y}], Time: {time.time()}")
-        self.write_csv(time.time(), x, y)
 
+        self.write_csv(time.time(), x, y)
     def write_csv(self, timestamp, x, y):
         self.csv_writer.writerow([timestamp, x, y])
     def setup_csv(self):
