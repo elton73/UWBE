@@ -91,6 +91,10 @@ class StartThread(threading.Thread):
                 else:
                     print('Stopped')
 
+                    #debug
+                    tag.add_time()
+                    print(tag.moving_time)
+
                     save = str(input("Save (y/n)? "))
                     if 'y' in save:
                         self.define_gold_standard()
@@ -114,6 +118,7 @@ class StartThread(threading.Thread):
     def define_variables(self):
         valid_input = False
         while not valid_input:
+            valid_input = True
             distance_threshold = input("Enter distance threshold in meters: ")
             if distance_threshold == "q":
                 if tag and tag.csv_file:
@@ -123,6 +128,8 @@ class StartThread(threading.Thread):
                 self.distance_threshold = float(distance_threshold)
             except:
                 print("Invalid distance threshold. Please enter float value.")
+                valid_input = False
+                continue
 
             timeframe = input("Enter timeframe in seconds: ")
             if timeframe == "q":
@@ -133,6 +140,8 @@ class StartThread(threading.Thread):
                 self.timeframe = float(timeframe)
             except:
                 print("Invalid timeframe. Please enter float value.")
+                valid_input = False
+                continue
 
             averaging_window = input("Enter window length: ")
             if averaging_window == "q":
@@ -144,6 +153,8 @@ class StartThread(threading.Thread):
                 self.averaging_window = int(averaging_window)
             except:
                 print("Invalid averaging_window. Please enter int value.")
+                valid_input = False
+                continue
 
             comments = input("Enter comments: ")
             if comments == "q":
@@ -151,7 +162,6 @@ class StartThread(threading.Thread):
                     tag.csv_file.close()
                 raise SystemExit
             self.comments = comments
-            valid_input = True
 
     def define_gold_standard(self):
         valid_input = False
@@ -163,7 +173,7 @@ class StartThread(threading.Thread):
                 raise SystemExit
             try:
                 gold_standard = float(user_input)
-                if gold_standard >= (tag.old_data[tag.index].raw_time - tag.time_begin):
+                if gold_standard >= (tag.old_data[tag.index].raw_time - tag.time_begin_of_program):
                     print(f"Warning! Gold standard time is greater than elapsed time.")
                     continue
                 self.gold_standard = gold_standard
