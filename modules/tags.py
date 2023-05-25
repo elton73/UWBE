@@ -5,6 +5,7 @@ Tag class for tracking all data
 import datetime
 import math
 import os
+import time
 from time import localtime, strftime
 import csv
 
@@ -28,9 +29,12 @@ class Tag():
         self.csv_file = None
         self.csv_writer = None
         self.index = int(self.AVERAGING_WINDOW/2)
-        self.s = None
+
+        self.setup_complete = False
+        self.time_begin_of_program = None
 
     def add_data(self, data):
+        #Read data for API and store it in data object
         try:
             accelerometer = data['data']['tagData']['accelerometer'][0]
         except:
@@ -40,18 +44,32 @@ class Tag():
         update_rate = data['data']['metrics']['rates']['update']
         data = Data(coordinates, accelerometer, raw_time, update_rate)
 
+        #Set up a buffer of previous datapoints
         self.old_data.append(data)
-        if len(self.old_data) < self.AVERAGING_WINDOW:
+        if len(self.old_data) < (self.AVERAGING_WINDOW+1):
             return
         self.old_data.pop(0)
 
-        #Compare positions every second to determine if patient has moved
+        #Determine if patient is moving or stationary
         data_time = self.old_data[self.index].raw_time
+
+        #Initialize data
         if not self.average_position:
             self.average_position = self.get_average_pos()
         if not self.time_start:
             self.time_start = data_time
+
         elif (data_time-self.time_start) > self.TIMEFRAME:
+            if not self.setup_complete:
+                print("Data Collection Has Begun")
+            self.setup_complete = True
+            # Store starting time of program
+            # todo: left off here
+            if not self.time_begin_of_program:
+                self.time_begin_of_program = time.perf_counter()
+                self.time_reference = data_time
+
+
             average_position = self.get_average_pos()
             if float(math.dist(average_position, self.average_position))/1000.0 > self.THRESHOLD:
                 self.is_moving = True
@@ -115,8 +133,6 @@ class Data():
             f"{local_datetime.strftime('%H')}-" \
             f"{local_datetime.strftime('%M')}-" \
             f"{local_datetime.strftime('%S')}"
-
-
 
 def tag_search(tags, tag_id):
     return next((tag for tag in tags if tag.tag_id == tag_id), False)

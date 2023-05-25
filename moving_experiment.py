@@ -45,6 +45,7 @@ def on_message(client, userdata, msg):
         if not tag or data['tagId'] != tag_id:
             print(f"Cannot find tag with tag id: {tag_id}")
             continue
+        print(data)
         tag.add_data(data)
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
@@ -69,17 +70,8 @@ class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
 
-        # experiment settings
-        self.distance_threshold = None
-        self.timeframe = None
-        self.averaging_window = None
-        self.comments = None
-        self.gold_standard = None
-
     def run(self):
         global running
-        self.define_variables()
-        tag.set_variables(self.distance_threshold, self.timeframe, self.averaging_window, self.comments)
         client.loop_start()
         while True:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
@@ -90,97 +82,12 @@ class StartThread(threading.Thread):
                     print('Started')
                 else:
                     print('Stopped')
-
-                    #debug
-                    tag.add_time()
-                    print(tag.moving_time)
-
-                    save = str(input("Save (y/n)? "))
-                    if 'y' in save:
-                        self.define_gold_standard()
-                        try:
-                            tag.get_output(self.gold_standard)
-                        except:
-                            print("Save Failed")
-                    elif 'q' in save:
-                        if tag and tag.csv_file:
-                            tag.csv_file.close()
-                        raise SystemExit
-                    self.define_variables()
-                    tag.set_variables(self.distance_threshold, self.timeframe, self.averaging_window,
-                                           self.comments)
+                    tag.raw_data_csv_file = None
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
-                if tag and tag.csv_file:
-                    tag.csv_file.close()
+                if tag and tag.raw_data_csv_file:
+                    tag.close_csv()
                 raise SystemExit
-
-    def define_variables(self):
-        valid_input = False
-        while not valid_input:
-            valid_input = True
-            distance_threshold = input("Enter distance threshold in meters: ")
-            if distance_threshold == "q":
-                if tag and tag.csv_file:
-                    tag.csv_file.close()
-                raise SystemExit
-            try:
-                self.distance_threshold = float(distance_threshold)
-            except:
-                print("Invalid distance threshold. Please enter float value.")
-                valid_input = False
-                continue
-
-            timeframe = input("Enter timeframe in seconds: ")
-            if timeframe == "q":
-                if tag and tag.csv_file:
-                    tag.csv_file.close()
-                raise SystemExit
-            try:
-                self.timeframe = float(timeframe)
-            except:
-                print("Invalid timeframe. Please enter float value.")
-                valid_input = False
-                continue
-
-            averaging_window = input("Enter window length: ")
-            if averaging_window == "q":
-                if tag:
-                    if tag.csv_file:
-                        tag.csv_file.close()
-                raise SystemExit
-            try:
-                self.averaging_window = int(averaging_window)
-            except:
-                print("Invalid averaging_window. Please enter int value.")
-                valid_input = False
-                continue
-
-            comments = input("Enter comments: ")
-            if comments == "q":
-                if tag and tag.csv_file:
-                    tag.csv_file.close()
-                raise SystemExit
-            self.comments = comments
-
-    def define_gold_standard(self):
-        valid_input = False
-        while not valid_input:
-            user_input = input("How long was the tag actually moving (seconds)? ")
-            if user_input == "q":
-                if tag and tag.csv_file:
-                    tag.csv_file.close()
-                raise SystemExit
-            try:
-                gold_standard = float(user_input)
-                if gold_standard >= (tag.old_data[tag.index].raw_time - tag.time_begin_of_program):
-                    print(f"Warning! Gold standard time is greater than elapsed time.")
-                    continue
-                self.gold_standard = gold_standard
-                valid_input = True
-            except:
-                print("Invalid Input. Please Enter A Decimal Number. Enter q to quit.")
-
 
 if __name__ == '__main__':
     tag_id = input("Enter tag id: ")
