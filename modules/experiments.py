@@ -18,6 +18,8 @@ class Tag_Moving(Accuracy):
         self.tag_id = tag_id
         self.raw_data_csv_file = None
         self.raw_data_csv_writer = None
+        self.comments = None
+        self.actual_time = None
 
     def add_data(self, data):
         if not self.raw_data_csv_file:
@@ -58,9 +60,14 @@ class Tag_Moving(Accuracy):
         raw_data_csv = os.path.join(data_dir, f"raw_data.csv")
         self.raw_data_csv_file = open(raw_data_csv, 'w', newline='')
         self.raw_data_csv_writer = csv.writer(self.raw_data_csv_file, dialect='excel')
+        self.raw_data_csv_writer.writerow([self.comments])
 
     def close_csv(self):
         self.raw_data_csv_file.close()
+
+    def write_time_to_csv(self):
+        self.raw_data_csv_writer.writerow([self.actual_time])
+
 
 class Tag_Positioning():
     def __init__(self, tag_id):

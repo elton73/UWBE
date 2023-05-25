@@ -13,6 +13,7 @@ import time
 
 
 tag = None
+counter = None
 # Modified version of Tag class for is_moving experiment
 class Tag_Moving(Accuracy):
     def __init__(self, tag_id):
@@ -138,7 +139,8 @@ class Tag_Moving(Accuracy):
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
-                                datetime.date.today().strftime('%Y-%m-%d'))
+                                datetime.date.today().strftime('%Y-%m-%d'),
+                                f"Exp_{counter}")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
@@ -174,11 +176,12 @@ class Tag_Moving(Accuracy):
             self.false_negatives = gold_standard - self.moving_time
         self.accuracy = self.get_accuracy()
 
-        print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {time_elapsed}, Time Spent Moving: "
-              f"{self.moving_time}, Actual Time Moving: {gold_standard}, "
-              f", datapoints = {self.count}")
+        #debug
+        # print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {time_elapsed}, Time Spent Moving: "
+        #       f"{self.moving_time}, Actual Time Moving: {gold_standard}, "
+        #       f", datapoints = {self.count}")
+
         self.write_csv(time_elapsed)
-        print("Writing to CSV...")
 
     def write_csv(self, time_elapsed):
         self.csv_writer.writerow(
@@ -267,55 +270,54 @@ def define_variables(tag):
 
     return distance_threshold, timeframe, averaging_window
 
-def define_gold_standard():
-    valid_input = False
-    gold_standard = None
-    while not valid_input:
-        user_input = input("How long was the tag actually moving (seconds)? ")
-        if user_input == "q":
-            if tag and tag.csv_file:
-                tag.close_csv()
-            raise SystemExit
-        try:
-            g = float(user_input)
-            if g >= (tag.old_data[tag.index].raw_time - tag.time_begin_of_program):
-                print(f"Warning! Gold standard time is greater than elapsed time.")
-                continue
-            gold_standard = g
-            valid_input = True
-        except:
-            print("Invalid Input. Please Enter A Decimal Number. Enter q to quit.")
-    return gold_standard
-
 if __name__ == '__main__':
+    date = '2023-05-25'  # enter date here
+
+    distance_threshold_max = 0.6
+    timeframe_max = 3
+    averaging_window_max = 25
+
     tag = Tag_Moving("10001009")
-    while 1:
-        counter = str(input("Enter experiment number: "))
-        if counter == "q":
-            if tag and tag.csv_file:
-                tag.close_csv()
-            raise SystemExit
+    counter = str(input("Enter experiment number: "))
+    if counter == "q":
+        if tag and tag.csv_file:
+            tag.close_csv()
+        raise SystemExit
+    path = os.path.join(os.getcwd(),
+                        "csv",
+                        "10001009",
+                        "experiments",
+                        "moving_experiment",
+                        "ILS",
+                        f'{date}',
+                        f"Exp_{counter}",
+                        f"raw_data.csv")
+    file = open(path, "r")
+    datalist = list(csv.reader(file, delimiter=","))
+    file.close()
 
-        path = os.path.join(os.getcwd(),
-                            "csv",
-                            "10001009",
-                            "experiments",
-                            "moving_experiment",
-                            "ILS",
-                            datetime.date.today().strftime('%Y-%m-%d'),
-                            f"Exp_{counter}",
-                            f"raw_data.csv")
-        file = open(path, "r")
-        datalist = list(csv.reader(file, delimiter=","))
-        file.close()
+    datalist.pop(0)
+    gold_standard = float(datalist.pop()[0])
 
-        distance_threshold, timeframe, averaging_window = define_variables(tag)
+
+    calibration_complete = False
+
+    distance_threshold = 0.15
+    timeframe = 0.5
+    averaging_window = 1
+
+    best_accuracy = 0
+    best_settings = []
+
+    time_start = time.perf_counter()
+    while not calibration_complete:
         tag.set_variables(distance_threshold, timeframe, averaging_window, f"Exp_{counter}")
 
         c = None
         a = None
         rt = None
         u = None
+
         for d in datalist:
             c = ast.literal_eval(d[0])
             a = d[1]
@@ -323,5 +325,28 @@ if __name__ == '__main__':
             u = d[3]
             tag.add_data(c, a, rt, u)
         tag.add_time()
-        tag.get_output(define_gold_standard())
+        tag.get_output(gold_standard)
+
+        print(f"Accuracy: {tag.accuracy:.2f} Distance Threshold: {distance_threshold:.2f}, Timeframe: {timeframe:.2f}, "
+              f"Averaging Window: {averaging_window}")
+
+        if tag.accuracy > best_accuracy:
+            best_accuracy = tag.accuracy
+            best_settings = [distance_threshold, timeframe, averaging_window]
+
+        distance_threshold += 0.05
+        if distance_threshold > distance_threshold_max:
+            distance_threshold = 0.15
+            timeframe += 0.1
+        if timeframe > timeframe_max:
+            timeframe = 0.5
+            averaging_window += 1
+        if averaging_window >= averaging_window_max:
+            calibration_complete = True
+
+    print(f"Best Settings: {best_settings}")
+    print(f"Accuracy: {best_accuracy:.2f}")
+    print(f"Time Taken: {(time.perf_counter()-time_start):.2f}")
+
+
 

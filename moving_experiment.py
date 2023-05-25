@@ -72,6 +72,11 @@ class StartThread(threading.Thread):
 
     def run(self):
         global running
+        comments = input("Enter Experiment Description: ")
+        if comments == "q":
+            tag.close_csv()
+            raise SystemExit
+        tag.comments = comments
         client.loop_start()
         while True:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
@@ -83,6 +88,24 @@ class StartThread(threading.Thread):
                 else:
                     print('Stopped')
                     tag.raw_data_csv_file = None
+
+                    # user enters gold standard moving time
+                    actual_time = input("Enter Actual Moving Time: ")
+                    if actual_time == "q":
+                        if tag and tag.raw_data_csv_file:
+                            tag.close_csv()
+                            raise SystemExit
+                    tag.actual_time = actual_time
+                    tag.write_time_to_csv()
+
+                    # user enters experiment description
+                    comments = input("Enter Experiment Description: ")
+                    if comments == "q":
+                        if tag and tag.raw_data_csv_file:
+                            tag.close_csv()
+                            raise SystemExit
+                    tag.comments = comments
+
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
                 if tag and tag.raw_data_csv_file:
