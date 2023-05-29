@@ -11,6 +11,7 @@ import csv
 from modules.accuracy import Accuracy
 import time
 
+
 # Modified version of Tag class for is_moving experiment
 class Tag_Moving(Accuracy):
     def __init__(self, tag_id):
@@ -20,6 +21,8 @@ class Tag_Moving(Accuracy):
         self.raw_data_csv_writer = None
         self.comments = None
         self.actual_time = None
+        self.actual_transitions = 0
+        self.route = "0"
 
     def add_data(self, data):
         if not self.raw_data_csv_file:
@@ -38,26 +41,18 @@ class Tag_Moving(Accuracy):
     def setup_csv(self):
         counter = 1
         data_dir = os.path.join(os.getcwd(),
-                               "csv",
-                               self.tag_id,
-                               "experiments",
-                               "moving_experiment",
-                               "ILS",
-                               datetime.date.today().strftime('%Y-%m-%d'),
-                               f"Exp_{counter}")
-        while os.path.exists(data_dir):
-            counter += 1
-            data_dir = os.path.join(os.getcwd(),
-                                    "csv",
-                                    self.tag_id,
-                                    "experiments",
-                                    "moving_experiment",
-                                    "ILS",
-                                    datetime.date.today().strftime('%Y-%m-%d'),
-                                    f"Exp_{counter}")
+                                "csv",
+                                self.tag_id,
+                                "experiments",
+                                "moving_experiment",
+                                "ILS",
+                                datetime.date.today().strftime('%Y-%m-%d'))
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
-        raw_data_csv = os.path.join(data_dir, f"raw_data.csv")
+        raw_data_csv = os.path.join(data_dir, f"Exp_{counter}-Route_{self.route}.csv")
+        while os.path.exists(raw_data_csv):
+            counter += 1
+            raw_data_csv = os.path.join(data_dir, f"Exp_{counter}.csv")
         self.raw_data_csv_file = open(raw_data_csv, 'w', newline='')
         self.raw_data_csv_writer = csv.writer(self.raw_data_csv_file, dialect='excel')
         self.raw_data_csv_writer.writerow([self.comments])
@@ -68,12 +63,15 @@ class Tag_Moving(Accuracy):
     def write_time_to_csv(self):
         self.raw_data_csv_writer.writerow([self.actual_time])
 
+    def write_transitions_to_csv(self):
+        self.raw_data_csv_writer.writerow([self.actual_transitions])
+
 
 class Tag_Positioning():
     def __init__(self, tag_id):
-        self.THRESHOLD = 0.4 # distance between two points in meters
-        self.AVERAGING_WINDOW = 15 # number of datapoints to use for averaging
-        self.TIMEFRAME = 5 # Time for comparing distance between two points in seconds
+        self.THRESHOLD = 0.4  # distance between two points in meters
+        self.AVERAGING_WINDOW = 15  # number of datapoints to use for averaging
+        self.TIMEFRAME = 5  # Time for comparing distance between two points in seconds
 
         self.tag_id = tag_id
         self.timestamp = None
@@ -107,8 +105,10 @@ class Tag_Positioning():
                 f"Coordinates: [{x}, {y}], Time: {time.time()}")
 
         self.csv_writer.writerow([time.time(), x, y])
+
     def write_csv(self, timestamp, x, y):
         self.csv_writer.writerow([timestamp, x, y])
+
     def setup_csv(self):
         csv_dir = os.path.join(os.getcwd(),
                                "csv",

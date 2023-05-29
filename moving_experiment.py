@@ -76,7 +76,11 @@ class StartThread(threading.Thread):
         if comments == "q":
             tag.close_csv()
             raise SystemExit
-        tag.comments = comments
+        route = input("Enter Route Number: ")
+        if route == "q":
+            tag.close_csv()
+            raise SystemExit
+        tag.route = route
         client.loop_start()
         while True:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
@@ -98,6 +102,15 @@ class StartThread(threading.Thread):
                     tag.actual_time = actual_time
                     tag.write_time_to_csv()
 
+                    # user enters gold standard number of transitions
+                    num_of_transitions = input("Enter Number Of Transitions: ")
+                    if num_of_transitions == "q":
+                        if tag and tag.raw_data_csv_file:
+                            tag.close_csv()
+                            raise SystemExit
+                    tag.actual_transitions = num_of_transitions
+                    tag.write_transitions_to_csv()
+
                     # user enters experiment description
                     comments = input("Enter Experiment Description: ")
                     if comments == "q":
@@ -111,6 +124,7 @@ class StartThread(threading.Thread):
                 if tag and tag.raw_data_csv_file:
                     tag.close_csv()
                 raise SystemExit
+
 
 if __name__ == '__main__':
     tag_id = input("Enter tag id: ")
