@@ -134,7 +134,7 @@ class Tag_Moving(Accuracy):
                                 "moving_experiment",
                                 "ILS",
                                 datetime.date.today().strftime('%Y-%m-%d'),
-                                f"Exp_{self.experiment_number}")
+                                f"Exp_{self.experiment_number}_Results")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
