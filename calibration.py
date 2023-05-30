@@ -13,7 +13,6 @@ import time
 
 
 tag = None
-counter = None
 # Modified version of Tag class for is_moving experiment
 class Tag_Moving(Accuracy):
     def __init__(self, tag_id):
@@ -57,6 +56,7 @@ class Tag_Moving(Accuracy):
         self.averaging_time = None
         self.moving_time = 0.0
         self.transition_count = 0
+        self.experiment_number = None
 
     def add_data(self, coordinates, accelerometer, raw_time, update_rate):
         if not self.csv_file:
@@ -134,7 +134,7 @@ class Tag_Moving(Accuracy):
                                 "moving_experiment",
                                 "ILS",
                                 datetime.date.today().strftime('%Y-%m-%d'),
-                                f"Exp_{counter}")
+                                f"Exp_{self.experiment_number}")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
@@ -187,7 +187,7 @@ class Tag_Moving(Accuracy):
              self.AVERAGING_WINDOW, self.THRESHOLD, self.TIMEFRAME, self.old_data[self.index].update_rate,
              self.old_data[self.index].timestamp])
 
-    def set_variables(self, threshold, timeframe, window, comments):
+    def set_variables(self, threshold, timeframe, window, comments, exp_number):
         self.THRESHOLD = threshold
         self.TIMEFRAME = timeframe
         self.AVERAGING_WINDOW = window
@@ -218,6 +218,7 @@ class Tag_Moving(Accuracy):
         self.moving_time = 0.0
         self.average_distance_buffer = []
         self.transition_count = 0
+        self.experiment_number = exp_number
 
 
 def define_variables(tag):
@@ -284,9 +285,11 @@ def main():
     # Enter inputs here
     tag_id = "10001009"
     date = "2023-05-30"
-    target_accuracy = 0.92
-    route = "1"
+    target_accuracy = float(input("Enter target accuracy: "))
+    route = input("Enter route number: ")
+    notes = input("Enter comments: ")
 
+    indexes = []
     datasets = []
     tag = Tag_Moving(tag_id)
     # Input form to choose which datasets to analyze
@@ -317,13 +320,14 @@ def main():
                 data = list(csv.reader(file, delimiter=","))
                 file.close()
                 datasets.append(data)
+                indexes.append(counter)
         else:
             print("Invalid Input. Please Try Again")
     time_start = time.perf_counter()
 
     # Begin brute forcing for calibration settings
     settings = []
-    for dataset in datasets:
+    for i, dataset in zip(indexes, datasets):
         calibration_complete = False
         dataset.pop(0)
         gold_standard_transitions = float(dataset.pop()[0])
@@ -339,7 +343,7 @@ def main():
 
         best_settings = []
         while not calibration_complete:
-            tag.set_variables(distance_threshold, timeframe, averaging_window, f"Exp_{counter}")
+            tag.set_variables(distance_threshold, timeframe, averaging_window, f"Exp_{i}", i)
             for d in dataset:
                 coordinates = ast.literal_eval(d[0])
                 accelerometer = d[1]
@@ -348,7 +352,7 @@ def main():
                 tag.add_data(coordinates, accelerometer, raw_time, update_rate)
             tag.add_time()
             tag.get_output(gold_standard_time, gold_standard_transitions)
-            if (tag.accuracy >= target_accuracy): #and abs(tag.transition_count - tag.gold_standard_transitions) < 3:
+            if (tag.accuracy >= target_accuracy) and abs(tag.transition_count - tag.gold_standard_transitions) < 3:
                 print(f"Accuracy: {tag.accuracy:.2f} Distance Threshold: {distance_threshold:.2f}, "
                       f"Timeframe: {timeframe:.2f}, "
                       f"Averaging Window: {averaging_window}, "
@@ -381,8 +385,12 @@ def main():
         writer = csv.writer(f, dialect='excel')
         for i in common_settings:
             writer.writerow(i)
+        writer.writerow([f"Route {route}"])
+        writer.writerow([f"Target Accuracy {target_accuracy}"])
+        writer.writerow([f"{notes}"])
 
     print(f"Time Taken: {time_taken:.2f}")
 
 if __name__ == '__main__':
     main()
+
