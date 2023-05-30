@@ -44,7 +44,8 @@ class Tag_Moving(Accuracy):
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
-                                datetime.date.today().strftime('%Y-%m-%d'))
+                                datetime.date.today().strftime('%Y-%m-%d'),
+                                "raw_data")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         csv_file = os.path.join(data_dir, f"Route_{self.route}-Exp_{counter}.csv")

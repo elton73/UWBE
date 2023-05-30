@@ -35,6 +35,7 @@ class Tag_Moving(Accuracy):
 
         self.csv_file = None
         self.csv_writer = None
+        self.save_data = True
 
         self.is_moving_count = 0
         self.is_stationary_count = 0
@@ -57,9 +58,10 @@ class Tag_Moving(Accuracy):
         self.moving_time = 0.0
         self.transition_count = 0
         self.experiment_number = None
+        self.error = 0.0
 
     def add_data(self, coordinates, accelerometer, raw_time, update_rate):
-        if not self.csv_file:
+        if not self.csv_file and self.save_data:
             self.setup_csv()
 
         self.data_points += 1
@@ -133,12 +135,10 @@ class Tag_Moving(Accuracy):
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
-                                datetime.date.today().strftime('%Y-%m-%d'),
-                                f"Exp_{self.experiment_number}_Results")
+                                datetime.date.today().strftime('%Y-%m-%d'))
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
-
-        tag_csv = os.path.join(data_dir, f'calibration.csv')
+        tag_csv = os.path.join(data_dir, f"Exp_{self.experiment_number}_Results.csv")
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file, dialect='excel')
         self.csv_writer.writerow(['tag_id', 'comments', 'accuracy (moving_time)', 'Error (seconds)', 'Transitions',
@@ -147,11 +147,14 @@ class Tag_Moving(Accuracy):
                                   'date recorded'])
 
     def close_csv(self):
-        self.csv_file.close()
+        if self.csv_file:
+            self.csv_file.close()
+            self.csv_file = None
 
     def get_output(self, gold_standard_time, gold_standard_transitions):
         self.gold_standard_time = gold_standard_time
         self.gold_standard_transitions = gold_standard_transitions
+        self.error = self.moving_time - self.gold_standard_time
         time_elapsed = self.old_data[self.index].raw_time - self.time_begin_of_program
 
         # debug
@@ -180,12 +183,13 @@ class Tag_Moving(Accuracy):
         self.write_csv(time_elapsed)
 
     def write_csv(self, time_elapsed):
-        self.csv_writer.writerow(
-            [self.tag_id, self.comments, self.accuracy, self.moving_time - self.gold_standard_time,
-             self.transition_count, self.gold_standard_transitions, self.gold_standard_time, self.moving_time, time_elapsed - self.moving_time,
-             self.old_data[self.index].raw_time - self.time_begin_of_program,
-             self.AVERAGING_WINDOW, self.THRESHOLD, self.TIMEFRAME, self.old_data[self.index].update_rate,
-             self.old_data[self.index].timestamp])
+        if self.save_data:
+            self.csv_writer.writerow(
+                [self.tag_id, self.comments, self.accuracy, self.error,
+                 self.transition_count, self.gold_standard_transitions, self.gold_standard_time, self.moving_time, time_elapsed - self.moving_time,
+                 self.old_data[self.index].raw_time - self.time_begin_of_program,
+                 self.AVERAGING_WINDOW, self.THRESHOLD, self.TIMEFRAME, self.old_data[self.index].update_rate,
+                 self.old_data[self.index].timestamp])
 
     def set_variables(self, threshold, timeframe, window, comments, exp_number):
         self.THRESHOLD = threshold
@@ -219,6 +223,7 @@ class Tag_Moving(Accuracy):
         self.average_distance_buffer = []
         self.transition_count = 0
         self.experiment_number = exp_number
+        self.error = 0.0
 
 
 def define_variables(tag):
@@ -285,6 +290,7 @@ def main():
     # Enter inputs here
     tag_id = "10001009"
     date = "2023-05-30"
+    save_data = True
     target_accuracy = float(input("Enter target accuracy: "))
     route = input("Enter route number: ")
     notes = input("Enter comments: ")
@@ -292,6 +298,7 @@ def main():
     indexes = []
     datasets = []
     tag = Tag_Moving(tag_id)
+    tag.save_data = save_data
     # Input form to choose which datasets to analyze
     input_flag = False
     print("Enter s to begin or q to quit")
@@ -312,6 +319,7 @@ def main():
                                 "moving_experiment",
                                 "ILS",
                                 f'{date}',
+                                "raw_data",
                                 f"Route_{route}-Exp_{counter}.csv")
             if not os.path.exists(path):
                 print("No such experiment! Please Try Again")
@@ -352,7 +360,9 @@ def main():
                 tag.add_data(coordinates, accelerometer, raw_time, update_rate)
             tag.add_time()
             tag.get_output(gold_standard_time, gold_standard_transitions)
-            if (tag.accuracy >= target_accuracy) and abs(tag.transition_count - tag.gold_standard_transitions) < 3:
+            if (tag.transition_count == tag.gold_standard_transitions) and \
+                    abs(tag.error/tag.gold_standard_transitions) < 0.5 and \
+                    (tag.accuracy >= target_accuracy):
                 print(f"Accuracy: {tag.accuracy:.2f} Distance Threshold: {distance_threshold:.2f}, "
                       f"Timeframe: {timeframe:.2f}, "
                       f"Averaging Window: {averaging_window}, "
@@ -393,4 +403,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    #todo: change transitions to stationary -> moving. Add a progress bar
 
