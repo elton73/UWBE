@@ -99,7 +99,6 @@ class Tag_Moving(Accuracy):
                 self.is_moving = True
             elif self.average_distance_travelled <= self.THRESHOLD and (self.is_moving or self.is_moving is None):
                 self.add_time()
-                self.transition_count += 1
                 self.is_moving = False
             self.previous_time = data_time
             self.average_position = average_position
@@ -350,6 +349,9 @@ def main():
         averaging_window_max = 20
 
         best_settings = []
+        update_progress_bar = True
+        progress_bar = 0
+        progress_bar_max = int(len(indexes)*averaging_window_max)
         while not calibration_complete:
             tag.set_variables(distance_threshold, timeframe, averaging_window, f"Exp_{i}", i)
             for d in dataset:
@@ -363,12 +365,15 @@ def main():
             if (tag.transition_count == tag.gold_standard_transitions) and \
                     abs(tag.error/tag.gold_standard_transitions) < 0.5 and \
                     (tag.accuracy >= target_accuracy):
-                print(f"Accuracy: {tag.accuracy:.2f} Distance Threshold: {distance_threshold:.2f}, "
-                      f"Timeframe: {timeframe:.2f}, "
-                      f"Averaging Window: {averaging_window}, "
-                      f"Error(s): {(tag.moving_time - tag.gold_standard_time):.2f}, "
-                      f"Transitions: {tag.transition_count}")
+                # print(f"Accuracy: {tag.accuracy:.2f} Distance Threshold: {distance_threshold:.2f}, "
+                #       f"Timeframe: {timeframe:.2f}, "
+                #       f"Averaging Window: {averaging_window}, "
+                #       f"Error(s): {(tag.moving_time - tag.gold_standard_time):.2f}, "
+                #       f"Transitions: {tag.transition_count}")
                 best_settings.append((distance_threshold, timeframe, averaging_window))
+            if update_progress_bar:
+                print(f"\r{int(100*progress_bar / progress_bar_max)} %", end='')
+                update_progress_bar = False
             distance_threshold += 0.05
             if distance_threshold > distance_threshold_max:
                 distance_threshold = 0.2
@@ -376,9 +381,12 @@ def main():
             if timeframe > timeframe_max:
                 timeframe = 0.5
                 averaging_window += 1
+                progress_bar += 1
+                update_progress_bar = True
             if averaging_window >= averaging_window_max:
                 calibration_complete = True
         settings.append(best_settings)
+        tag.close_csv()
 
     common_settings = find_common_settings(settings)
     time_taken = (time.perf_counter() - time_start)
@@ -403,5 +411,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-    #todo: change transitions to stationary -> moving. Add a progress bar
+
 
