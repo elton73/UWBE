@@ -283,8 +283,9 @@ def main():
 
     # Enter inputs here
     tag_id = "10001009"
-    date = "2023-05-25"
+    date = "2023-05-30"
     target_accuracy = 0.92
+    route = "1"
 
     datasets = []
     tag = Tag_Moving(tag_id)
@@ -308,7 +309,7 @@ def main():
                                 "moving_experiment",
                                 "ILS",
                                 f'{date}',
-                                f"Exp_{counter}.csv")
+                                f"Route_{route}-Exp_{counter}.csv")
             if not os.path.exists(path):
                 print("No such experiment! Please Try Again")
             else:

@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0dddaa04-389a-4820-9c36-c5e213c33295" name="Changes" comment="Changed output statements">
+    <list default="true" id="0dddaa04-389a-4820-9c36-c5e213c33295" name="Changes" comment="Calibration works for multiple experiments. Live experiment updated with movement algorithm. Added tracker for movement transitions.">
+      <change afterPath="$PROJECT_DIR$/modules/inputs.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/calibration.py" beforeDir="false" afterPath="$PROJECT_DIR$/calibration.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/modules/experiments.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/experiments.py" afterDir="false" />
@@ -81,7 +82,8 @@
       <workItem from="1685028076541" duration="18874000" />
       <workItem from="1685052213538" duration="656000" />
       <workItem from="1685373828760" duration="4504000" />
-      <workItem from="1685386673688" duration="11738000" />
+      <workItem from="1685386673688" duration="11825000" />
+      <workItem from="1685461690473" duration="4106000" />
     </task>
     <task id="LOCAL-00001" summary="updated experiments">
       <created>1683213714946</created>
@@ -111,7 +113,14 @@
       <option name="project" value="LOCAL" />
       <updated>1685053918060</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Calibration works for multiple experiments. Live experiment updated with movement algorithm. Added tracker for movement transitions.">
+      <created>1685399959440</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1685399959440</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -122,7 +131,8 @@
     <MESSAGE value="Moving Time Is More Accurate" />
     <MESSAGE value="Moving experiment now only records data. Calibration.py is for testing the program variables." />
     <MESSAGE value="Changed output statements" />
-    <option name="LAST_COMMIT_MESSAGE" value="Changed output statements" />
+    <MESSAGE value="Calibration works for multiple experiments. Live experiment updated with movement algorithm. Added tracker for movement transitions." />
+    <option name="LAST_COMMIT_MESSAGE" value="Calibration works for multiple experiments. Live experiment updated with movement algorithm. Added tracker for movement transitions." />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/UWBE$get_data_test.coverage" NAME="get_data_test Coverage Results" MODIFIED="1681252071913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -132,10 +142,10 @@
     <SUITE FILE_PATH="coverage/UWBE$tags.coverage" NAME="tags Coverage Results" MODIFIED="1683043751816" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$conduct_experiment.coverage" NAME="conduct_experiment Coverage Results" MODIFIED="1682438243611" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$test.coverage" NAME="test Coverage Results" MODIFIED="1683149326085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$moving_experiment.coverage" NAME="moving_experiment Coverage Results" MODIFIED="1685048402311" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$moving_experiment.coverage" NAME="moving_experiment Coverage Results" MODIFIED="1685465092659" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$logger.coverage" NAME="logger Coverage Results" MODIFIED="1680726157449" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$moving.coverage" NAME="moving Coverage Results" MODIFIED="1682438647506" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
-    <SUITE FILE_PATH="coverage/UWBE$calibration.coverage" NAME="calibration Coverage Results" MODIFIED="1685399483552" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$experiments.coverage" NAME="experiments Coverage Results" MODIFIED="1685036799049" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
+    <SUITE FILE_PATH="coverage/UWBE$calibration.coverage" NAME="calibration Coverage Results" MODIFIED="1685465756638" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$experiments.coverage" NAME="experiments Coverage Results" MODIFIED="1685462808970" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
   </component>
 </project>

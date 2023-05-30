@@ -12,6 +12,7 @@ import json
 import ssl
 from modules.experiments import Tag_Moving
 import time
+import modules.inputs as inputs
 
 # globals
 running = False
@@ -42,8 +43,8 @@ def on_message(client, userdata, msg):
             continue
         if not data['success']:
             continue
-        if not tag or data['tagId'] != tag_id:
-            print(f"Cannot find tag with tag id: {tag_id}")
+        if not tag or data['tagId'] != tag.tag_id:
+            print(f"Cannot find tag with tag id: {tag.tag_id}")
             continue
         print(data)
         tag.add_data(data)
@@ -72,15 +73,8 @@ class StartThread(threading.Thread):
 
     def run(self):
         global running
-        comments = input("Enter Experiment Description: ")
-        if comments == "q":
-            tag.close_csv()
-            raise SystemExit
-        route = input("Enter Route Number: ")
-        if route == "q":
-            tag.close_csv()
-            raise SystemExit
-        tag.route = route
+        tag.comments = inputs.get_experiment_description(tag)
+        tag.route = inputs.get_route_number(tag)
         client.loop_start()
         while True:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
@@ -91,46 +85,32 @@ class StartThread(threading.Thread):
                     print('Started')
                 else:
                     print('Stopped')
-                    tag.raw_data_csv_file = None
 
                     # user enters gold standard moving time
-                    actual_time = input("Enter Actual Moving Time: ")
-                    if actual_time == "q":
-                        if tag and tag.raw_data_csv_file:
-                            tag.close_csv()
-                            raise SystemExit
-                    tag.actual_time = actual_time
+                    tag.actual_time = inputs.get_moving_time(tag)
                     tag.write_time_to_csv()
 
                     # user enters gold standard number of transitions
-                    num_of_transitions = input("Enter Number Of Transitions: ")
-                    if num_of_transitions == "q":
-                        if tag and tag.raw_data_csv_file:
-                            tag.close_csv()
-                            raise SystemExit
-                    tag.actual_transitions = num_of_transitions
+                    tag.actual_transitions = inputs.get_transition_count(tag)
                     tag.write_transitions_to_csv()
+                    print("Results Saved!")
+                    tag.close_csv()
 
                     # user enters experiment description
-                    comments = input("Enter Experiment Description: ")
-                    if comments == "q":
-                        if tag and tag.raw_data_csv_file:
-                            tag.close_csv()
-                            raise SystemExit
-                    tag.comments = comments
+                    tag.comments = inputs.get_experiment_description(tag)
+                    tag.route = inputs.get_route_number(tag)
+                    print("Press control to start and stop. Press q to quit")
+
 
             elif keyboard.is_pressed('q'):
                 client.loop_stop()
-                if tag and tag.raw_data_csv_file:
+                if tag:
                     tag.close_csv()
                 raise SystemExit
 
 
 if __name__ == '__main__':
-    tag_id = input("Enter tag id: ")
-    if tag_id == "q":
-        raise SystemExit
-    tag = Tag_Moving(tag_id)
+    tag = Tag_Moving(inputs.get_tag_id())
     StartThread().start()
 
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py

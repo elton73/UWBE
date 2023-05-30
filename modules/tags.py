@@ -38,7 +38,8 @@ class Tag():
         except:
             return
         coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
-        raw_time = time.perf_counter()
+        raw_time = data['timestamp']
+        # raw_time = time.perf_counter()
         update_rate = data['data']['metrics']['rates']['update']
         data = Data(coordinates, accelerometer, raw_time, update_rate)
 
