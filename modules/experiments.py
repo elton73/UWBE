@@ -72,11 +72,15 @@ class TagMovingV2(Accuracy):
         self.csv_writer = None
         self.save_data = True
         self.comments = None
+        self.speed_csv_file = None
+        self.speed_csv_writer = None
+        self.save_speeds = False
         # constants
         self.averaging_window_threshold = 5
         self.speed_threshold = 0.3  # min speed
         self.count_threshold = 8
 
+        #reset
         self.is_moving = False
         self.moving_time = 0
         self.transition_count = 0
@@ -98,18 +102,11 @@ class TagMovingV2(Accuracy):
         self.end_index = None
         self.start_of_program = None
 
-        # debug
-        self.fake_time = 0.0
-        self.speed_csv_file = None
-        self.speed_csv_writer = None
-        self.save_speeds = False
-
-        # plot
+        #plot
         self.speeds = []
 
     def add_data(self, raw_data):
         self.index += 1
-        self.fake_time += 0.1
         self.raw_data_buffer.append(raw_data)
         if len(self.raw_data_buffer) < self.averaging_window_threshold:
             return
@@ -121,7 +118,6 @@ class TagMovingV2(Accuracy):
         data = Data(self.get_average_pos(), current_coordinate.accelerometer, current_coordinate.raw_time,
                     current_coordinate.update_rate)
         data.raw_coordinates = current_coordinate.coordinates
-        data.fake_time = self.fake_time
         self.raw_data_buffer.pop(0)
         data.index = self.index - index
         if len(self.data_buffer) < 1:
@@ -223,23 +219,24 @@ class TagMovingV2(Accuracy):
                                             self.data_buffer[-1].index])
 
     def setup_speed_csv(self):
-        data_dir = os.path.join(os.getcwd(),
-                                "csv",
-                                self.tag_id,
-                                "experiments",
-                                "moving_experiment",
-                                "ILS",
-                                "Speeds")
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
-        number = 1
-        speed_csv = os.path.join(data_dir, f"Exp_{number}_Speeds.csv")
-        while os.path.exists(speed_csv):
-            number += 1
+        if self.save_speeds:
+            data_dir = os.path.join(os.getcwd(),
+                                    "csv",
+                                    self.tag_id,
+                                    "experiments",
+                                    "moving_experiment",
+                                    "ILS",
+                                    "Speeds")
+            if not os.path.exists(data_dir):
+                os.makedirs(data_dir)
+            number = 1
             speed_csv = os.path.join(data_dir, f"Exp_{number}_Speeds.csv")
-        self.speed_csv_file = open(speed_csv, 'w', newline='')
-        self.speed_csv_writer = csv.writer(self.speed_csv_file, dialect='excel')
-        self.speed_csv_writer.writerow(['comments', "speed", "coordinates", "index"])
+            while os.path.exists(speed_csv):
+                number += 1
+                speed_csv = os.path.join(data_dir, f"Exp_{number}_Speeds.csv")
+            self.speed_csv_file = open(speed_csv, 'w', newline='')
+            self.speed_csv_writer = csv.writer(self.speed_csv_file, dialect='excel')
+            self.speed_csv_writer.writerow(['comments', "speed", "coordinates", "index"])
 
     def setup_csv(self):
         data_dir = os.path.join(os.getcwd(),
@@ -287,9 +284,6 @@ class TagMovingV2(Accuracy):
         self.start_index = None
         self.end_index = None
         self.start_of_program = None
-
-        # debug
-        self.fake_time = 0.0
 
     def close_csv(self):
         if self.csv_file:

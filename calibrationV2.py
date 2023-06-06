@@ -174,7 +174,7 @@ def generate_speed_data(datasets, indexes, averaging_window):
         dataset.pop(0)
         dataset.pop()
         dataset.pop()
-
+        
         tag.reset(f"Exp_{i}", i)
         tag.averaging_window_threshold = averaging_window
         tag.save_speeds = save_speed
@@ -182,6 +182,7 @@ def generate_speed_data(datasets, indexes, averaging_window):
         for d in dataset:
             tag.add_data(RawData(ast.literal_eval(d[0]), d[1], float(d[2]), d[3]))
         tag.plot()
+        tag.write_speed_csv()
         tag.close_csv()
 
 if __name__ == '__main__':

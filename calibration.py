@@ -126,7 +126,6 @@ class Tag_Moving(Accuracy):
         return [sum_x / len(self.old_data), sum_y / len(self.old_data)]
 
     def add_time(self):
-        # debug. Change in movement
         if self.is_moving is None:
             return
         if self.is_moving:
@@ -162,10 +161,9 @@ class Tag_Moving(Accuracy):
         self.error = self.moving_time - self.gold_standard_time
         time_elapsed = self.old_data[self.index].raw_time - self.time_begin_of_program
 
-        # debug
         if self.moving_time > time_elapsed:
             print("Error. Moving time is greater than time elapsed.")
-            quit()
+            raise SystemExit
 
         if self.moving_time >= gold_standard_time:
             self.true_positives = gold_standard_time

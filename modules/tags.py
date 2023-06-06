@@ -130,15 +130,11 @@ class Data:
         self.y = c[1]
         self.accelerometer = a
         self.raw_time = r
-        self.fake_time = None
         self.update_rate = u
         self.timestamp = self.get_timestamp()
         self.speed = 0
         self.index = None
         self.raw_coordinates = None
-
-        #v3
-        self.average_coordinate = None
 
     def get_timestamp(self):
         local_datetime = datetime.datetime.fromtimestamp(self.raw_time)
@@ -152,7 +148,7 @@ class Data:
 
     def set_speed(self, data):
         distance = float(math.dist(data.coordinates, self.coordinates)) / 1000.0
-        timeframe = self.fake_time-data.fake_time
+        timeframe = self.raw_time-data.raw_time
         self.speed = float(distance/timeframe)
 
 
