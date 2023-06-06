@@ -1,4 +1,3 @@
-
 class Accuracy():
     def __init__(self):
         self.true_positives = None

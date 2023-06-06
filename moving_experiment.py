@@ -10,7 +10,7 @@ import keyboard
 import paho.mqtt.client as mqtt
 import json
 import ssl
-from modules.experiments import Tag_Moving
+from modules.experiments import TagMoving
 import time
 import modules.inputs as inputs
 
@@ -74,7 +74,6 @@ class StartThread(threading.Thread):
     def run(self):
         global running
         tag.comments = inputs.get_experiment_description(tag)
-        tag.route = inputs.get_route_number(tag)
         client.loop_start()
         while True:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
@@ -93,13 +92,12 @@ class StartThread(threading.Thread):
                     # user enters gold standard number of transitions
                     tag.actual_transitions = inputs.get_transition_count(tag)
                     tag.write_transitions_to_csv()
-                    print("Results Saved!")
                     tag.close_csv()
+                    print("Results Saved!")
 
                     # user enters experiment description
                     tag.comments = inputs.get_experiment_description(tag)
-                    tag.route = inputs.get_route_number(tag)
-                    print("Press control to start and stop. Press q to quit")
+                    print("\nPress control to start and stop. Press q to quit")
 
 
             elif keyboard.is_pressed('q'):
@@ -110,7 +108,7 @@ class StartThread(threading.Thread):
 
 
 if __name__ == '__main__':
-    tag = Tag_Moving(inputs.get_tag_id())
+    tag = TagMoving(inputs.get_tag_id())
     StartThread().start()
 
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py

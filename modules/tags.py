@@ -5,13 +5,12 @@ Tag class for tracking all data
 import datetime
 import math
 import os
-import time
 from time import localtime, strftime
 import csv
 
-class Tag():
-    def __init__(self, tag_id):
 
+class Tag:
+    def __init__(self, tag_id):
         self.THRESHOLD = 0.6  # distance between two points in meters
         self.TIMEFRAME = 2  # Time for comparing distance between two points in seconds
         self.AVERAGING_WINDOW = 24  # number of datapoints to use for averaging
@@ -119,19 +118,27 @@ class Tag():
             os.makedirs(csv_dir)
         tag_csv = os.path.join(csv_dir, f'{strftime("T%H-%M-%S", localtime())}.csv')
         self.csv_file = open(tag_csv, 'w', newline='')
-        self.csv_writer = csv.writer(self.csv_file, dialect='excel')
+        self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(['tag_id', 'coordinates', 'accelerometer', 'moving', 'moving_time', 'average_position',
                                   'datetime', 'update rate'])
 
-class Data():
+
+class Data:
     def __init__(self, c, a, r, u):
         self.coordinates = c
         self.x = c[0]
         self.y = c[1]
         self.accelerometer = a
         self.raw_time = r
+        self.fake_time = None
         self.update_rate = u
         self.timestamp = self.get_timestamp()
+        self.speed = 0
+        self.index = None
+        self.raw_coordinates = None
+
+        #v3
+        self.average_coordinate = None
 
     def get_timestamp(self):
         local_datetime = datetime.datetime.fromtimestamp(self.raw_time)
@@ -143,7 +150,21 @@ class Data():
             f"{local_datetime.strftime('%M')}-" \
             f"{local_datetime.strftime('%S')}"
 
+    def set_speed(self, data):
+        distance = float(math.dist(data.coordinates, self.coordinates)) / 1000.0
+        timeframe = self.fake_time-data.fake_time
+        self.speed = float(distance/timeframe)
+
+
+class RawData:
+    def __init__(self, c, a, r, u):
+        self.coordinates = c
+        self.x = c[0]
+        self.y = c[1]
+        self.accelerometer = a
+        self.raw_time = r
+        self.update_rate = u
+
 def tag_search(tags, tag_id):
     return next((tag for tag in tags if tag.tag_id == tag_id), False)
-
 

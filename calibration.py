@@ -10,9 +10,11 @@ from modules.tags import Data
 import csv
 from modules.accuracy import Accuracy
 import time
+from modules.utils import find_common_settings
 
 
 tag = None
+date = None
 # Modified version of Tag class for is_moving experiment
 class Tag_Moving(Accuracy):
     def __init__(self, tag_id):
@@ -59,6 +61,8 @@ class Tag_Moving(Accuracy):
         self.transition_count = 0
         self.experiment_number = None
         self.error = 0.0
+        self.movement_intervals = []
+        self.start_of_movement = None
 
     def add_data(self, coordinates, accelerometer, raw_time, update_rate):
         if not self.csv_file and self.save_data:
@@ -95,9 +99,12 @@ class Tag_Moving(Accuracy):
 
             if self.average_distance_travelled > self.THRESHOLD and (not self.is_moving or self.is_moving is None):
                 self.add_time()
+                self.start_of_movement = self.averaging_time
                 self.transition_count += 1
                 self.is_moving = True
             elif self.average_distance_travelled <= self.THRESHOLD and (self.is_moving or self.is_moving is None):
+                if self.is_moving:
+                    self.movement_intervals.append((self.averaging_time - self.start_of_movement))
                 self.add_time()
                 self.is_moving = False
             self.previous_time = data_time
@@ -133,13 +140,12 @@ class Tag_Moving(Accuracy):
                                 self.tag_id,
                                 "experiments",
                                 "moving_experiment",
-                                "ILS",
-                                datetime.date.today().strftime('%Y-%m-%d'))
+                                "ILS")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         tag_csv = os.path.join(data_dir, f"Exp_{self.experiment_number}_Results.csv")
         self.csv_file = open(tag_csv, 'w', newline='')
-        self.csv_writer = csv.writer(self.csv_file, dialect='excel')
+        self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(['tag_id', 'comments', 'accuracy (moving_time)', 'Error (seconds)', 'Transitions',
                                   'gold_standard_moving_time', 'gold_standard_moving_time', 'moving_time',
                                   'stationary_time', 'total_time', 'window', 'threshold', 'timeframe', 'update rate',
@@ -223,6 +229,7 @@ class Tag_Moving(Accuracy):
         self.transition_count = 0
         self.experiment_number = exp_number
         self.error = 0.0
+        self.movement_intervals = []
 
 
 def define_variables(tag):
@@ -272,26 +279,13 @@ def program_exit():
         tag.close_csv()
     raise SystemExit
 
-def find_common_settings(settings_list):
-    if len(settings_list) < 2:
-        return settings_list[0]
-
-    common_settings = settings_list.pop(0)
-    for setting in settings_list:
-        common_settings = set(common_settings).intersection(setting)
-    return common_settings
-
-
-
 def main():
     global tag, counter
 
     # Enter inputs here
     tag_id = "10001009"
-    date = "2023-05-30"
-    save_data = True
+    save_data = False
     target_accuracy = float(input("Enter target accuracy: "))
-    route = input("Enter route number: ")
     notes = input("Enter comments: ")
 
     indexes = []
@@ -310,16 +304,15 @@ def main():
             if len(datasets) < 1:
                 print("No data!")
 
-        elif counter.isnumeric():
+        elif counter.isnumeric() and counter not in indexes:
             path = os.path.join(os.getcwd(),
                                 "csv",
                                 tag_id,
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
-                                f'{date}',
                                 "raw_data",
-                                f"Route_{route}-Exp_{counter}.csv")
+                                f"Exp_{counter}.csv")
             if not os.path.exists(path):
                 print("No such experiment! Please Try Again")
             else:
@@ -334,24 +327,31 @@ def main():
 
     # Begin brute forcing for calibration settings
     settings = []
+
+    # start and end settings for brute force method
+    distance_threshold = 0.2
+    timeframe = 0.5
+    averaging_window = 1
+
+    distance_threshold_max = 1.0
+    timeframe_max = 3
+    averaging_window_max = 20
+
+    distance_threshold_increment = 0.05
+    timeframe_increment = 0.1
+    averaging_window_increment = 1
+    progress_bar = 0.0
+    progress_bar_max = int(len(indexes) * ((timeframe_max - timeframe) / timeframe_increment) *
+                           (averaging_window_max - averaging_window + averaging_window_increment) /
+                           averaging_window_increment)
     for i, dataset in zip(indexes, datasets):
         calibration_complete = False
         dataset.pop(0)
         gold_standard_transitions = float(dataset.pop()[0])
         gold_standard_time = float(dataset.pop()[0])
 
-        # start and end settings for brute force method
-        distance_threshold = 0.2
-        timeframe = 0.5
-        averaging_window = 1
-        distance_threshold_max = 1.0
-        timeframe_max = 3
-        averaging_window_max = 20
-
         best_settings = []
         update_progress_bar = True
-        progress_bar = 0
-        progress_bar_max = int(len(indexes)*averaging_window_max)
         while not calibration_complete:
             tag.set_variables(distance_threshold, timeframe, averaging_window, f"Exp_{i}", i)
             for d in dataset:
@@ -372,22 +372,24 @@ def main():
                 #       f"Transitions: {tag.transition_count}")
                 best_settings.append((distance_threshold, timeframe, averaging_window))
             if update_progress_bar:
-                print(f"\r{int(100*progress_bar / progress_bar_max)} %", end='')
+                print(f"\r{float(100*progress_bar / progress_bar_max):.2f} %", end='')
                 update_progress_bar = False
-            distance_threshold += 0.05
+            distance_threshold += distance_threshold_increment
             if distance_threshold > distance_threshold_max:
                 distance_threshold = 0.2
-                timeframe += 0.1
-            if timeframe > timeframe_max:
-                timeframe = 0.5
-                averaging_window += 1
+                timeframe += timeframe_increment
                 progress_bar += 1
                 update_progress_bar = True
-            if averaging_window >= averaging_window_max:
+            if timeframe > timeframe_max:
+                timeframe = 0.5
+                averaging_window += averaging_window_increment
+            if averaging_window > averaging_window_max:
                 calibration_complete = True
+                averaging_window = 1
         settings.append(best_settings)
         tag.close_csv()
 
+    print("\n")
     common_settings = find_common_settings(settings)
     time_taken = (time.perf_counter() - time_start)
     calibration_number = str(input("Enter calibration number: "))
@@ -397,13 +399,11 @@ def main():
                         "experiments",
                         "moving_experiment",
                         "ILS",
-                        f'{date}',
                         f'calibration_total_{calibration_number}.csv')
     with open(path, 'w',newline='') as f:
-        writer = csv.writer(f, dialect='excel')
+        writer = csv.writer(f)
         for i in common_settings:
             writer.writerow(i)
-        writer.writerow([f"Route {route}"])
         writer.writerow([f"Target Accuracy {target_accuracy}"])
         writer.writerow([f"{notes}"])
 
