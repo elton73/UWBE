@@ -1,16 +1,16 @@
 """
+#Deprecated
 Calibrate speed, distance, averaging variables
 """
 
-import datetime
 import math
 import os
 import ast
-from modules.tags import Data
+from project.experiment_tools.tags import Data
 import csv
-from modules.accuracy import Accuracy
+from project.utils.accuracy import Accuracy
 import time
-from modules.utils import find_common_settings
+from project.utils import find_common_settings
 
 
 tag = None
@@ -135,7 +135,7 @@ class Tag_Moving(Accuracy):
 
     def setup_csv(self):
         data_dir = os.path.join(os.getcwd(),
-                                "csv",
+                                "../../csv",
                                 self.tag_id,
                                 "experiments",
                                 "moving_experiment",
@@ -304,7 +304,7 @@ def main():
 
         elif counter.isnumeric() and counter not in indexes:
             path = os.path.join(os.getcwd(),
-                                "csv",
+                                "../../csv",
                                 tag_id,
                                 "experiments",
                                 "moving_experiment",
@@ -392,7 +392,7 @@ def main():
     time_taken = (time.perf_counter() - time_start)
     calibration_number = str(input("Enter calibration number: "))
     path = os.path.join(os.getcwd(),
-                        "csv",
+                        "../../csv",
                         tag_id,
                         "experiments",
                         "moving_experiment",

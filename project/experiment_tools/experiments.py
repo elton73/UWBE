@@ -5,8 +5,8 @@ Classes for specific experiments
 import os
 import csv
 import matplotlib.pyplot as plt
-from modules.accuracy import Accuracy
-from modules.tags import Data
+from project.utils.accuracy import Accuracy
+from project.experiment_tools.tags import Data
 
 # Modified version of Tag class for a moving experiment
 class TagMoving(Accuracy):
@@ -16,8 +16,9 @@ class TagMoving(Accuracy):
         self.csv_file = None
         self.csv_writer = None
         self.comments = None
-        self.actual_time = None
-        self.actual_transitions = 0
+        self.gold_standard_time = None
+        self.gold_standard_transition_count = 0
+        self.gold_standard_intervals = []
 
     def add_data(self, data):
         if not self.csv_file:
@@ -57,11 +58,12 @@ class TagMoving(Accuracy):
             self.csv_file.close()
             self.csv_file = None
 
-    def write_time_to_csv(self):
-        self.csv_writer.writerow([self.actual_time])
-
     def write_transitions_to_csv(self):
-        self.csv_writer.writerow([self.actual_transitions])
+        self.csv_writer.writerow([self.gold_standard_transition_count])
+
+    def write_time_to_csv(self):
+        self.csv_writer.writerow([self.gold_standard_time])
+        self.csv_writer.writerow([self.gold_standard_intervals])
 
 class TagMovingV2(Accuracy):
     def __init__(self, tag_id):
@@ -92,7 +94,9 @@ class TagMovingV2(Accuracy):
         self.accuracy = 0
         self.gold_standard_time = None
         self.gold_standard_transition_count = None
+        self.gold_standard_intervals = []
         self.error = None
+        self.moving_time_indexes = []
         self.moving_time_intervals = []
         self.stationary_count = 0
         self.moving_count = 0
@@ -154,7 +158,6 @@ class TagMovingV2(Accuracy):
         if self.count == self.count_threshold:
             if self.moving_count > 0:
                 if not self.is_moving:
-                    self.transition_count += 1
                     self.start_of_movement_time = self.get_start_of_movement_time()
                 self.is_moving = True
                 self.moving_count = 0
@@ -165,7 +168,9 @@ class TagMovingV2(Accuracy):
                     moving_time = self.end_of_movement_time - self.start_of_movement_time
                     if moving_time > 0:
                         self.moving_time += moving_time
-                        self.moving_time_intervals.append([self.start_index, self.end_index])
+                        self.moving_time_intervals.append(moving_time)
+                        self.transition_count += 1
+                        self.moving_time_indexes.append([self.start_index, self.end_index])
                 self.is_moving = False
                 self.moving_count = 0
                 self.stationary_count = 0
@@ -203,15 +208,24 @@ class TagMovingV2(Accuracy):
             self.false_negatives = self.gold_standard_time - self.moving_time
         self.accuracy = self.get_accuracy()
 
+    # Check if any of the time interval errors are too large
+    def find_error(self, max_error):
+        if self.gold_standard_transition_count != self.transition_count:
+            return True
+        for i in range(int(self.gold_standard_transition_count)):
+            if abs(float(self.gold_standard_intervals[i]) - float(self.moving_time_intervals[i])) > max_error:
+                return True
+        return False
+
+
     def write_csv(self):
         if self.save_data:
             self.csv_writer.writerow(
                 [self.tag_id, self.comments, self.accuracy, self.error,
-                 self.transition_count, self.gold_standard_transition_count, self.gold_standard_time, self.moving_time,
-                 self.count_threshold,
-                 self.speed_threshold, self.averaging_window_threshold, self.total_time_elapsed,
-                 self.data_buffer[-1].timestamp,
-                 self.moving_time_intervals])
+                 self.transition_count, self.gold_standard_transition_count, self.moving_time, self.gold_standard_time,
+                 self.count_threshold, self.speed_threshold, self.averaging_window_threshold, self.total_time_elapsed,
+                 self.data_buffer[-1].timestamp, self.moving_time_indexes, self.moving_time_intervals,
+                 self.gold_standard_intervals])
 
     def write_speed_csv(self):
         if self.save_speeds:
@@ -257,9 +271,9 @@ class TagMovingV2(Accuracy):
         self.csv_file = open(tag_csv, 'w', newline='')
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(['tag_id', 'comments', 'accuracy (moving_time)', 'Error (seconds)', 'Transitions',
-                                  'gold_standard_transition_count', 'gold_standard_moving_time', 'moving_time',
+                                  'gold_standard_transition_count', 'moving_time', 'gold_standard_moving_time',
                                   'count', 'speed_threshold', 'averaging_window', 'total_time', 'date recorded',
-                                  'movement_intervals'])
+                                  'movement_intervals', 'gold_standard_movement_intervals'])
 
     def reset(self, comments, exp_number):
         self.experiment_number = exp_number
@@ -276,6 +290,7 @@ class TagMovingV2(Accuracy):
         self.gold_standard_time = None
         self.gold_standard_transition_count = None
         self.error = None
+        self.moving_time_indexes = []
         self.moving_time_intervals = []
         self.stationary_count = 0
         self.moving_count = 0
@@ -284,6 +299,7 @@ class TagMovingV2(Accuracy):
         self.start_index = None
         self.end_index = None
         self.start_of_program = None
+        self.gold_standard_intervals = []
 
     def close_csv(self):
         if self.csv_file:

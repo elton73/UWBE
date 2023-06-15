@@ -40,7 +40,7 @@ class StartThread(threading.Thread):
                 quit()
 
 #setup csv output
-csv_dir = os.path.join(Path(r"C:\Users\ML-2\Documents\GitHub\UWBE"), "csv", f"{datetime.date.today().strftime('%Y-%m-%d')}")
+csv_dir = os.path.join(Path(r"/"), "../../csv", f"{datetime.date.today().strftime('%Y-%m-%d')}")
 if not os.path.exists(csv_dir):
     os.makedirs(csv_dir)
 path = os.path.join(csv_dir,

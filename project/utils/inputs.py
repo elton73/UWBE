@@ -1,5 +1,7 @@
 import os
 import csv
+from config import TAG_ID
+
 def get_tag_id():
     user_input = input("Enter tag id: ")
     if user_input == "q":
@@ -22,20 +24,33 @@ def get_route_number(tag=None):
     return user_input
 
 def get_moving_time(tag=None):
-    user_input = input("Enter Moving Time: ")
-    if user_input == "q":
-        if tag:
-            tag.close_csv()
-        raise SystemExit
-    return user_input
+    intervals = []
+    for t in range(int(tag.gold_standard_transition_count)):
+        input_flag = True
+        while input_flag:
+            user_input = input("Enter Moving Time: ")
+            if user_input == "q":
+                raise SystemExit
+            else:
+                try:
+                    moving_time = float(user_input)
+                    intervals.append(moving_time)
+                    input_flag = False
+                except ValueError:
+                    print("Invalid Input. Please Try Again!")
+    return intervals
 
 def get_transition_count(tag=None):
-    user_input = input("Enter Number Of Transitions: ")
-    if user_input == "q":
-        if tag:
-            tag.close_csv()
-        raise SystemExit
-    return user_input
+    while 1:
+        user_input = input("Enter Number Of Transitions: ")
+        if user_input == "q":
+            if tag:
+                tag.close_csv()
+            raise SystemExit
+        elif not user_input.isnumeric():
+            print("Invalid Input. Please Try Again!")
+        else:
+            return user_input
 
 def choose_csvs(tag=None):
     datasets = []
@@ -54,14 +69,16 @@ def choose_csvs(tag=None):
                 print("No data!")
         elif counter.isnumeric() and counter not in indexes:
             path = os.path.join(os.getcwd(),
+                                "../../",
                                 "csv",
-                                tag.tag_id,
+                                TAG_ID,
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
                                 "raw_data",
                                 f"Exp_{counter}.csv")
             if not os.path.exists(path):
+                print(path)
                 print("No such experiment! Please Try Again")
             else:
                 file = open(path, "r")
@@ -99,6 +116,20 @@ def get_accuracy(tag = None):
             except ValueError:
                 pass
             print("Invalid Input. Please Try Again!")
+
+def get_max_error(tag = None):
+    while 1:
+        user_input = input("Enter Max Error (Seconds): ")
+        if user_input == "q":
+            if tag:
+                tag.close_csv()
+            raise SystemExit
+        else:
+            try:
+                accuracy = float(user_input)
+                return accuracy
+            except ValueError:
+                print("Invalid Input. Please Try Again!")
 
 def get_averaging_window(tag = None):
     while 1:

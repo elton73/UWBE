@@ -5,24 +5,27 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0dddaa04-389a-4820-9c36-c5e213c33295" name="Changes" comment="Created new movement algorithm. Organized some inputs and modules. Added a config file.">
-      <change afterPath="$PROJECT_DIR$/calibrationV2.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/modules/utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/UWBE.iml" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/core/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/core/audio_response_recognizer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/experiment_tools/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/tests/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/tests/calibrationV3.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/utils/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/utils/audio_handler.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/project/utils/file_handler.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UWBE/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UWBE/asgi.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/UWBE/settings.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/UWBE/urls.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/UWBE/wsgi.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/calibration.py" beforeDir="false" afterPath="$PROJECT_DIR$/calibration.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hayden_experiment.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/manage.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/accuracy.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/accuracy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/experiments.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/experiments.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/inputs.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/inputs.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/modules/tags.py" beforeDir="false" afterPath="$PROJECT_DIR$/modules/tags.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/moving_experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/moving_experiment.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calibration.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/tests/calibration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/calibrationV2.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/tests/calibrationV2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/conduct_experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/core/conduct_experiment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/accuracy.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/utils/accuracy.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/experiments.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/experiment_tools/experiments.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/inputs.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/utils/inputs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/tags.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/experiment_tools/tags.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/modules/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/utils/progress_bar.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/moving_experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/core/moving_experiment.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/uwb_accuracy_experiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/project/core/uwb_accuracy_experiment.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,10 +58,11 @@
     &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/ML-2/Documents/GitHub/UWBE&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/ML-2/Documents/GitHub/zed&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -67,7 +71,11 @@
       <recent name="C:\Users\ML-2\Documents\GitHub\UWBE" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE" />
+      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE\project\experiment_tools" />
+      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE\project\utils" />
+      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE\project" />
+      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE\utils" />
+      <recent name="C:\Users\ML-2\Documents\GitHub\UWBE\tests" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -108,7 +116,14 @@
       <workItem from="1685991541200" duration="12568000" />
       <workItem from="1686066042081" duration="7892000" />
       <workItem from="1686083544024" duration="4128000" />
-      <workItem from="1686090078649" duration="126000" />
+      <workItem from="1686090078649" duration="944000" />
+      <workItem from="1686152129886" duration="7306000" />
+      <workItem from="1686168420910" duration="607000" />
+      <workItem from="1686241731690" duration="6809000" />
+      <workItem from="1686251559011" duration="16000" />
+      <workItem from="1686844143790" duration="5343000" />
+      <workItem from="1686851353405" duration="393000" />
+      <workItem from="1686851763297" duration="6099000" />
     </task>
     <task id="LOCAL-00001" summary="updated experiments">
       <created>1683213714946</created>
@@ -180,11 +195,29 @@
       <option name="project" value="LOCAL" />
       <updated>1685485743431</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="Created new movement algorithm. Organized some inputs and modules. Added a config file.">
+      <created>1686090209659</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1686090209659</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="updated experiments" />
@@ -205,24 +238,29 @@
         <watch expression="self.data_buffer" />
         <watch expression="self.data_buffer[10]" />
         <watch expression="self.data_buffer[10]" />
+        <watch expression="dbscan" />
       </configuration>
     </watches-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/UWBE$calibrationV3.coverage" NAME="calibrationV3 Coverage Results" MODIFIED="1686073935066" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$moving_experiment.coverage" NAME="moving_experiment Coverage Results" MODIFIED="1686086209058" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$calibrationV3.coverage" NAME="calibrationV3 Coverage Results" MODIFIED="1686251120218" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/project/tests" />
+    <SUITE FILE_PATH="coverage/UWBE$moving_experiment.coverage" NAME="moving_experiment Coverage Results" MODIFIED="1686155831939" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$moving.coverage" NAME="moving Coverage Results" MODIFIED="1682438647506" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$get_data_test.coverage" NAME="get_data_test Coverage Results" MODIFIED="1681252071913" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$calibrationV2.coverage" NAME="calibrationV2 Coverage Results" MODIFIED="1686086818916" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$file_path.coverage" NAME="file_path Coverage Results" MODIFIED="1686853182103" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/project/utils" />
+    <SUITE FILE_PATH="coverage/UWBE$calibrationV2.coverage" NAME="calibrationV2 Coverage Results" MODIFIED="1686159175600" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$csv.coverage" NAME="csv Coverage Results" MODIFIED="1681918897414" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$get_data.coverage" NAME="get_data Coverage Results" MODIFIED="1681501281569" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$inputs.coverage" NAME="inputs Coverage Results" MODIFIED="1686072795519" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
+    <SUITE FILE_PATH="coverage/UWBE$inputs.coverage" NAME="inputs Coverage Results" MODIFIED="1686156979369" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$hayden_experiment.coverage" NAME="hayden_experiment Coverage Results" MODIFIED="1683136215258" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$tags.coverage" NAME="tags Coverage Results" MODIFIED="1685979757805" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
     <SUITE FILE_PATH="coverage/UWBE$conduct_experiment.coverage" NAME="conduct_experiment Coverage Results" MODIFIED="1682438243611" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$test.coverage" NAME="test Coverage Results" MODIFIED="1683149326085" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/UWBE$thread_test.coverage" NAME="thread_test Coverage Results" MODIFIED="1686846921014" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/project/tests" />
+    <SUITE FILE_PATH="coverage/UWBE$text_to_speech.coverage" NAME="text_to_speech Coverage Results" MODIFIED="1686853266244" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/project/utils" />
     <SUITE FILE_PATH="coverage/UWBE$logger.coverage" NAME="logger Coverage Results" MODIFIED="1680726157449" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/UWBE$calibration.coverage" NAME="calibration Coverage Results" MODIFIED="1685657675546" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/UWBE$experiments.coverage" NAME="experiments Coverage Results" MODIFIED="1685462808970" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
+    <SUITE FILE_PATH="coverage/UWBE$experiments.coverage" NAME="experiments Coverage Results" MODIFIED="1686157964620" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/modules" />
+    <SUITE FILE_PATH="coverage/UWBE$audio_handler.coverage" NAME="audio_handler Coverage Results" MODIFIED="1686859372827" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/project/utils" />
   </component>
 </project>
