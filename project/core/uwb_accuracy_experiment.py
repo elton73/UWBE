@@ -1,5 +1,5 @@
 """
-Conduct a UWB accuracy experiment here
+Conduct a UWB accuracy experiment here (Deprecated)
 """
 
 import os

@@ -1,6 +1,5 @@
 """
-#Deprecated
-Calibrate speed, distance, averaging variables
+Calibrate speed, distance, averaging variables (Deprecated)
 """
 
 import math

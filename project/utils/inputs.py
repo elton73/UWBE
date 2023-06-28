@@ -5,34 +5,28 @@ from config import TAG_ID
 def get_tag_id():
     user_input = input("Enter tag id: ")
     if user_input == "q":
-        raise SystemExit
+        return "q"
     return user_input
-def get_experiment_description(stop_flag, tag=None):
+def get_experiment_description():
     user_input = input("Enter Experiment Description: ")
     if user_input == "q":
-        if tag:
-            tag.close_csv()
-        stop_flag.set()
-        raise SystemExit
+        return "q"
     return user_input
 
-def get_route_number(stop_flag, tag=None):
+def get_route_number():
     user_input = input("Enter Route Number: ")
     if user_input == "q":
-        if tag:
-            tag.close_csv()
-        raise SystemExit
+        return "q"
     return user_input
 
-def get_moving_time(stop_flag, tag=None):
+def get_moving_time(tag):
     intervals = []
     for t in range(int(tag.gold_standard_transition_count)):
         input_flag = True
         while input_flag:
             user_input = input("Enter Moving Time: ")
             if user_input == "q":
-                stop_flag.set()
-                raise SystemExit
+                return "q"
             else:
                 try:
                     moving_time = float(user_input)
@@ -42,30 +36,22 @@ def get_moving_time(stop_flag, tag=None):
                     print("Invalid Input. Please Try Again!")
     return intervals
 
-def get_transition_count(stop_flag, tag=None):
+def get_transition_count():
     while 1:
         user_input = input("Enter Number Of Transitions: ")
-        if user_input == "q":
-            if tag:
-                tag.close_csv()
-            stop_flag.set()
-            raise SystemExit
-        elif not user_input.isnumeric():
-            print("Invalid Input. Please Try Again!")
-        else:
+        if user_input.isnumeric() or user_input == "q":
             return user_input
+        else:
+            print("Invalid Input. Please Try Again!")
 
-def choose_csvs(stop_flag, tag=None):
+def choose_csvs():
     datasets = []
     indexes = []
     print("Enter s to begin or q to quit")
     while 1:
         counter = str(input("Enter an experiment number: "))
         if "q" in counter:  # quit calibration
-            if tag:
-                tag.close_csv()
-            stop_flag.set()
-            raise SystemExit
+            return "q"
         elif "s" in counter:  # begin calibration
             if len(datasets) > 0:
                 return datasets, indexes
@@ -93,27 +79,19 @@ def choose_csvs(stop_flag, tag=None):
         else:
             print("Invalid Input. Please Try Again")
 
-def get_calibration_type(stop_flag, tag=None):
+def get_calibration_type():
     print("Enter Calibration Type Here! 1. Generate Accuracy Table; 2. Generate Calibration Table; 3. Generate Speed Table And Plot")
     while 1:
         user_input = input("Enter Calibration Type: ")
-        if user_input == "q":
-            if tag:
-                tag.close_csv()
-            stop_flag.set()
-            raise SystemExit
-        elif user_input == '1' or user_input == '2' or user_input == '3':
+        if user_input == '1' or user_input == '2' or user_input == '3' or user_input == "q":
             return user_input
         else:
             print("Invalid Input. Please Try Again!")
-def get_accuracy(stop_flag, tag = None):
+def get_accuracy():
     while 1:
         user_input = input("Enter Target Accuracy (Decimal): ")
         if user_input == "q":
-            if tag:
-                tag.close_csv()
-            stop_flag.set()
-            raise SystemExit
+            return "q"
         else:
             try:
                 accuracy = float(user_input)
@@ -123,14 +101,11 @@ def get_accuracy(stop_flag, tag = None):
                 pass
             print("Invalid Input. Please Try Again!")
 
-def get_max_error(stop_flag, tag = None):
+def get_max_error():
     while 1:
         user_input = input("Enter Max Error (Seconds): ")
         if user_input == "q":
-            if tag:
-                tag.close_csv()
-            stop_flag.set()
-            raise SystemExit
+            return "q"
         else:
             try:
                 accuracy = float(user_input)
@@ -138,15 +113,25 @@ def get_max_error(stop_flag, tag = None):
             except ValueError:
                 print("Invalid Input. Please Try Again!")
 
-def get_averaging_window(stop_flag, tag = None):
+def get_averaging_window():
     while 1:
         user_input = input("Enter Averaging Window (Odd Number): ")
         if user_input == "q":
-            if tag:
-                tag.close_csv()
-            stop_flag.set()
-            raise SystemExit
+            return "q"
         elif user_input.isnumeric() and int(user_input) % 2 != 0:
             return int(user_input)
         else:
             print("Invalid Input. Please Try Again!")
+
+def get_mp3_file():
+    user_input = input("Enter file name: ")
+    if user_input == "q":
+        return "q"
+    return user_input
+
+def get_text():
+    user_input = input("Enter text: ")
+    if user_input == "q":
+        return "q"
+    return user_input
+

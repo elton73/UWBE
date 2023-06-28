@@ -21,7 +21,7 @@ from mutagen.mp3 import MP3
 # globals
 running = False
 tag = None
-stop_flag = threading.Event()
+stop_flag = False
 
 """
 Setup Pozyx Connection
@@ -74,14 +74,17 @@ Threading
 class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.stop_flag = stop_flag
 
     def run(self):
-        global running
-        tag.comments = inputs.get_experiment_description(tag)
+        global running, stop_flag
+        user_input = inputs.get_experiment_description()
+        if user_input == "q":
+            stop_flag = True
+            return
+        tag.comments = user_input
         client.loop_start()
         PlayAudio().start()
-        while not stop_flag.is_set():
+        while not stop_flag:
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
                 time.sleep(1.0)
                 keyboard.release('ctrl')
@@ -92,49 +95,71 @@ class StartThread(threading.Thread):
                     print('Stopped')
 
                     # user enters gold standard number of transitions
-                    tag.gold_standard_transition_count = inputs.get_transition_count(tag)
-                    # user enters gold standard moving time for each transition
-                    tag.gold_standard_intervals = inputs.get_moving_time(tag)
-                    tag.gold_standard_time = sum(tag.gold_standard_intervals)
+                    user_input = inputs.get_transition_count()
+                    if user_input == "q":
+                        stop_flag = True
+                        break
+                    tag.gold_standard_transition_count = user_input
 
+                    # user enters gold standard moving time for each transition
+                    user_input =inputs.get_moving_time(tag)
+                    if user_input == "q":
+                        stop_flag = True
+                        break
+                    tag.gold_standard_intervals = user_input
+                    tag.gold_standard_time = sum(tag.gold_standard_intervals)
                     tag.write_transitions_to_csv()
                     tag.write_time_to_csv()
                     tag.close_csv()
                     print("Results Saved!")
 
                     # user enters experiment description
-                    tag.comments = inputs.get_experiment_description(tag)
+                    user_input = inputs.get_experiment_description()
+                    if user_input == "q":
+                        stop_flag = True
+                        break
+                    tag.comments = user_input
+
                     print("\nPress control to start and stop. Press q to quit")
 
 
             elif keyboard.is_pressed('q'):
-                client.loop_stop()
-                if tag:
-                    tag.close_csv()
-                raise SystemExit
+                stop_flag = True
+        if tag:
+            tag.close_csv()
+        client.loop_stop()
+        client.disconnect()
 
 class PlayAudio(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.audio_player = AudioPlayer()
+        self.previous_zone = None
+
+        self._wait_duration = 0.0
+        self.previous_time = None
+
+
     def run(self):
-        while not stop_flag.is_set():
+        while not stop_flag:
             time.sleep(1)
+            if not tag:
+                break
             if not running:
                 continue
-            if not tag or not tag.coordinates:
-                break
-            x = tag.coordinates[0]
-            y = tag.coordinates[1]
-            print(f"Audio: {x}, {y}")
-
-            url = "http://192.168.0.103:5000/static/recording_1.mp3"
-            filename, headers = urlretrieve(url)
-            audio = MP3(filename)
-            duration = audio.info.length
-            print(duration)
-            self.audio_player.play_url(url)
-            time.sleep(duration)
+            print(tag.zone.name)
+            if self._wait_duration <= 0:
+                if self.previous_zone != tag.zone.name:
+                    self.previous_zone = tag.zone.name
+                    url = "http://192.168.0.103:5000/static/recording_1.mp3"
+                    filename, headers = urlretrieve(url)
+                    audio = MP3(filename)
+                    self._wait_duration = audio.info.length
+                    self.audio_player.play_url(url)
+                    self.previous_time = time.time()
+            else:
+                self._wait_duration -= (time.time()-self.previous_time)
+                self.previous_time = time.time()
 
 
 

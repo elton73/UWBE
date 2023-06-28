@@ -1,6 +1,5 @@
 import pychromecast
-import os
-from time import sleep
+import inspect
 
 
 class AudioPlayer:
@@ -22,3 +21,6 @@ class AudioPlayer:
         self.mc.block_until_active()
         self.mc.play()
 
+if __name__ == '__main__':
+    a = AudioPlayer()
+    a.play_url("http://192.168.0.103:5000/static/recording_1.mp3")

@@ -4,4 +4,9 @@ keyboard-0.13.5
 path-16.6.0
 matplotlib~=3.7.1
 keyboard~=0.13.5
-paho-mqtt~=1.6.1
+Flask-2.3.2
+mutagen-1.46
+pychromecast==7.5.1
+protobuf-3.20.1
+waitress-2.1.2
+pyttsx3-2.90

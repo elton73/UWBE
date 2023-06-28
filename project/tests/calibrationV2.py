@@ -11,17 +11,30 @@ from config import TAG_ID
 tag = TagMovingV2(TAG_ID)
 
 def main():
-    calibration_type = inputs.get_calibration_type(tag=tag)
-    datasets, indexes = inputs.choose_csvs(tag=tag)
-    time_start = time.perf_counter()
+    user_input = inputs.get_calibration_type()
+    if user_input == "q":
+        return
+    calibration_type = user_input
 
+    user_input = inputs.choose_csvs()
+    if user_input == "q":
+        return
+    datasets, indexes = user_input
+
+    time_start = time.perf_counter()
     if calibration_type == '1':
         generate_accuracy_table(datasets, indexes)
     elif calibration_type == '2':
-        accuracy = inputs.get_max_error()
+        user_input = inputs.get_max_error()
+        if user_input == "q":
+            return
+        accuracy = user_input
         generate_calibration_table(datasets, indexes, accuracy)
     elif calibration_type == '3':
-        averaging_window = inputs.get_averaging_window()
+        user_input = inputs.get_averaging_window()
+        if user_input == "q":
+            return
+        averaging_window = user_input
         generate_speed_data(datasets, indexes, averaging_window)
 
     print(f"\nTime Taken: {(time.perf_counter() - time_start):.2f}")
