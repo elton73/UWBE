@@ -13,11 +13,15 @@ import ssl
 from project.experiment_tools.experiments import TagMoving
 import time
 import project.utils.inputs as inputs
+from project.utils.pychromecast_handler import AudioPlayer
 from config import TAG_ID
+from urllib.request import urlretrieve
+from mutagen.mp3 import MP3
 
 # globals
 running = False
 tag = None
+stop_flag = threading.Event()
 
 """
 Setup Pozyx Connection
@@ -47,7 +51,6 @@ def on_message(client, userdata, msg):
         if not tag or data['tagId'] != tag.tag_id:
             print(f"Cannot find tag with tag id: {tag.tag_id}")
             continue
-        print(data)
         tag.add_data(data)
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
@@ -71,12 +74,14 @@ Threading
 class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
+        self.stop_flag = stop_flag
 
     def run(self):
         global running
         tag.comments = inputs.get_experiment_description(tag)
         client.loop_start()
-        while True:
+        PlayAudio().start()
+        while not stop_flag.is_set():
             if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
                 time.sleep(1.0)
                 keyboard.release('ctrl')
@@ -108,15 +113,33 @@ class StartThread(threading.Thread):
                     tag.close_csv()
                 raise SystemExit
 
-class AskQuestion(threading.Thread):
+class PlayAudio(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-    def start(self):
-        user_input = input("Ask Question")
+        self.audio_player = AudioPlayer()
+    def run(self):
+        while not stop_flag.is_set():
+            time.sleep(1)
+            if not running:
+                continue
+            if not tag or not tag.coordinates:
+                break
+            x = tag.coordinates[0]
+            y = tag.coordinates[1]
+            print(f"Audio: {x}, {y}")
+
+            url = "http://192.168.0.103:5000/static/recording_1.mp3"
+            filename, headers = urlretrieve(url)
+            audio = MP3(filename)
+            duration = audio.info.length
+            print(duration)
+            self.audio_player.play_url(url)
+            time.sleep(duration)
+
+
 
 if __name__ == '__main__':
     tag = TagMoving(TAG_ID)
     # tag = TagMoving(inputs.get_tag_id())
     StartThread().start()
-
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py

@@ -122,7 +122,6 @@ class Tag:
         self.csv_writer.writerow(['tag_id', 'coordinates', 'accelerometer', 'moving', 'moving_time', 'average_position',
                                   'datetime', 'update rate'])
 
-
 class Data:
     def __init__(self, c, a, r, u):
         self.coordinates = c
@@ -135,6 +134,7 @@ class Data:
         self.speed = 0
         self.index = None
         self.raw_coordinates = None
+        self.zone = self.Zone()
 
     def get_timestamp(self):
         local_datetime = datetime.datetime.fromtimestamp(self.raw_time)
@@ -148,8 +148,8 @@ class Data:
 
     def set_speed(self, data):
         distance = float(math.dist(data.coordinates, self.coordinates)) / 1000.0
-        timeframe = self.raw_time-data.raw_time
-        self.speed = float(distance/timeframe)
+        timeframe = self.raw_time - data.raw_time
+        self.speed = float(distance / timeframe)
 
 
 class RawData:

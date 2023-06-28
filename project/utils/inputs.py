@@ -7,15 +7,16 @@ def get_tag_id():
     if user_input == "q":
         raise SystemExit
     return user_input
-def get_experiment_description(tag=None):
+def get_experiment_description(stop_flag, tag=None):
     user_input = input("Enter Experiment Description: ")
     if user_input == "q":
         if tag:
             tag.close_csv()
+        stop_flag.set()
         raise SystemExit
     return user_input
 
-def get_route_number(tag=None):
+def get_route_number(stop_flag, tag=None):
     user_input = input("Enter Route Number: ")
     if user_input == "q":
         if tag:
@@ -23,13 +24,14 @@ def get_route_number(tag=None):
         raise SystemExit
     return user_input
 
-def get_moving_time(tag=None):
+def get_moving_time(stop_flag, tag=None):
     intervals = []
     for t in range(int(tag.gold_standard_transition_count)):
         input_flag = True
         while input_flag:
             user_input = input("Enter Moving Time: ")
             if user_input == "q":
+                stop_flag.set()
                 raise SystemExit
             else:
                 try:
@@ -40,19 +42,20 @@ def get_moving_time(tag=None):
                     print("Invalid Input. Please Try Again!")
     return intervals
 
-def get_transition_count(tag=None):
+def get_transition_count(stop_flag, tag=None):
     while 1:
         user_input = input("Enter Number Of Transitions: ")
         if user_input == "q":
             if tag:
                 tag.close_csv()
+            stop_flag.set()
             raise SystemExit
         elif not user_input.isnumeric():
             print("Invalid Input. Please Try Again!")
         else:
             return user_input
 
-def choose_csvs(tag=None):
+def choose_csvs(stop_flag, tag=None):
     datasets = []
     indexes = []
     print("Enter s to begin or q to quit")
@@ -61,6 +64,7 @@ def choose_csvs(tag=None):
         if "q" in counter:  # quit calibration
             if tag:
                 tag.close_csv()
+            stop_flag.set()
             raise SystemExit
         elif "s" in counter:  # begin calibration
             if len(datasets) > 0:
@@ -89,24 +93,26 @@ def choose_csvs(tag=None):
         else:
             print("Invalid Input. Please Try Again")
 
-def get_calibration_type(tag=None):
+def get_calibration_type(stop_flag, tag=None):
     print("Enter Calibration Type Here! 1. Generate Accuracy Table; 2. Generate Calibration Table; 3. Generate Speed Table And Plot")
     while 1:
         user_input = input("Enter Calibration Type: ")
         if user_input == "q":
             if tag:
                 tag.close_csv()
+            stop_flag.set()
             raise SystemExit
         elif user_input == '1' or user_input == '2' or user_input == '3':
             return user_input
         else:
             print("Invalid Input. Please Try Again!")
-def get_accuracy(tag = None):
+def get_accuracy(stop_flag, tag = None):
     while 1:
         user_input = input("Enter Target Accuracy (Decimal): ")
         if user_input == "q":
             if tag:
                 tag.close_csv()
+            stop_flag.set()
             raise SystemExit
         else:
             try:
@@ -117,12 +123,13 @@ def get_accuracy(tag = None):
                 pass
             print("Invalid Input. Please Try Again!")
 
-def get_max_error(tag = None):
+def get_max_error(stop_flag, tag = None):
     while 1:
         user_input = input("Enter Max Error (Seconds): ")
         if user_input == "q":
             if tag:
                 tag.close_csv()
+            stop_flag.set()
             raise SystemExit
         else:
             try:
@@ -131,12 +138,13 @@ def get_max_error(tag = None):
             except ValueError:
                 print("Invalid Input. Please Try Again!")
 
-def get_averaging_window(tag = None):
+def get_averaging_window(stop_flag, tag = None):
     while 1:
         user_input = input("Enter Averaging Window (Odd Number): ")
         if user_input == "q":
             if tag:
                 tag.close_csv()
+            stop_flag.set()
             raise SystemExit
         elif user_input.isnumeric() and int(user_input) % 2 != 0:
             return int(user_input)
