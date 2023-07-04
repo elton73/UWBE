@@ -2,6 +2,7 @@
 Conduct a movement experiment here.
 """
 
+import socket
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -84,12 +85,12 @@ class StartThread(threading.Thread):
             stop_flag = True
             return
         elif user_input == "test":
-            tag.write_to_csv = False
+            tag.enable_csv = False
         tag.comments = user_input
 
         #Start all threads
-        client.loop_start()
         PlayAudio().start()
+        client.loop_start()
 
         while not stop_flag:
             # start and stop recording data by pressing ctrl
@@ -102,25 +103,26 @@ class StartThread(threading.Thread):
                 else:
                     print('Stopped')
 
-                    # user enters gold standard number of transitions
-                    user_input = inputs.get_transition_count()
-                    if user_input == "q":
-                        stop_flag = True
-                        break
-                    tag.gold_standard_transition_count = user_input
+                    if tag.enable_csv:
+                        # user enters gold standard number of transitions
+                        user_input = inputs.get_transition_count()
+                        if user_input == "q":
+                            stop_flag = True
+                            break
+                        tag.gold_standard_transition_count = user_input
 
-                    # user enters gold standard moving time for each transition
-                    user_input = inputs.get_moving_time(tag)
-                    if user_input == "q":
-                        stop_flag = True
-                        break
-                    tag.gold_standard_intervals = user_input
-                    tag.gold_standard_time = sum(tag.gold_standard_intervals)
-                    tag.write_transitions_to_csv()
-                    tag.write_time_to_csv()
+                        # user enters gold standard moving time for each transition
+                        user_input = inputs.get_moving_time(tag)
+                        if user_input == "q":
+                            stop_flag = True
+                            break
+                        tag.gold_standard_intervals = user_input
+                        tag.gold_standard_time = sum(tag.gold_standard_intervals)
+                        tag.write_transitions_to_csv()
+                        tag.write_time_to_csv()
+                        print("Results Saved!")
                     tag.close_csv()
-                    print("Results Saved!")
-                    tag.write_to_csv = True  # reset csv flag
+                    tag.enable_csv = True  # reset csv flag
 
                     # user enters experiment description
                     user_input = inputs.get_experiment_description()
@@ -128,7 +130,7 @@ class StartThread(threading.Thread):
                         stop_flag = True
                         break
                     elif user_input == "test":
-                        tag.write_to_csv = False
+                        tag.enable_csv = False
                     tag.comments = user_input
 
                     print("\nPress control to start and stop. Press q to quit")
@@ -181,16 +183,17 @@ class PlayAudio(threading.Thread):
                 self.previous_time = time.time()
     def get_url(self, zone):
         if zone == "Living Room":
-            return "http://192.168.0.103:5000/static/LivingRoom.mp3"
+            return f"http://{config.IPV4_ADDRESS}:5000/static/LivingRoom.mp3"
 
         if zone == "Kitchen":
-            return "http://192.168.0.103:5000/static/Kitchen.mp3"
+            return f"http://{config.IPV4_ADDRESS}:5000/static/Kitchen.mp3"
 
         if zone == "Bedroom":
-            return "http://192.168.0.103:5000/static/Bedroom.mp3"
+            return f"http://{config.IPV4_ADDRESS}:5000/static/Bedroom.mp3"
 
         if zone == "Washroom":
-            return "http://192.168.0.103:5000/static/Washroom.mp3"
+            return f"http://{config.IPV4_ADDRESS}:5000/static/Washroom.mp3"
+
 
 
 

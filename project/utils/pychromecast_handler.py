@@ -8,6 +8,7 @@ class AudioPlayer:
         self.get_chromecast()
 
     def get_chromecast(self):
+        # Try connecting to chromecast directly
         try:
             cast = pychromecast.Chromecast(config.IPV4_ADDRESS)
             cast.wait()
@@ -17,6 +18,7 @@ class AudioPlayer:
         except:
             print("Connection attempt failed. Retrying...", end="\n")
 
+        # Scan network for all chromecasts and search for chromecast by uuid
         try:
             chromecasts, services = pychromecast.get_chromecasts()
             for chromecast in chromecasts:
