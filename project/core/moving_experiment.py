@@ -14,7 +14,7 @@ from project.experiment_tools.experiments import TagMoving
 import time
 import project.utils.inputs as inputs
 from project.utils.pychromecast_handler import AudioPlayer
-from config import TAG_ID
+import config
 from urllib.request import urlretrieve
 from mutagen.mp3 import MP3
 
@@ -77,18 +77,26 @@ class StartThread(threading.Thread):
 
     def run(self):
         global running, stop_flag
+
+        # Ask user for experiment description
         user_input = inputs.get_experiment_description()
         if user_input == "q":
             stop_flag = True
             return
+        elif user_input == "test":
+            tag.write_to_csv = False
         tag.comments = user_input
+
+        #Start all threads
         client.loop_start()
         PlayAudio().start()
+
         while not stop_flag:
-            if keyboard.is_pressed('ctrl'):  # Check if ctrl is pressed
+            # start and stop recording data by pressing ctrl
+            if keyboard.is_pressed('ctrl'):
                 time.sleep(1.0)
                 keyboard.release('ctrl')
-                running = not running  # Toggle the running state
+                running = not running
                 if running:
                     print('Started')
                 else:
@@ -102,7 +110,7 @@ class StartThread(threading.Thread):
                     tag.gold_standard_transition_count = user_input
 
                     # user enters gold standard moving time for each transition
-                    user_input =inputs.get_moving_time(tag)
+                    user_input = inputs.get_moving_time(tag)
                     if user_input == "q":
                         stop_flag = True
                         break
@@ -112,30 +120,35 @@ class StartThread(threading.Thread):
                     tag.write_time_to_csv()
                     tag.close_csv()
                     print("Results Saved!")
+                    tag.write_to_csv = True  # reset csv flag
 
                     # user enters experiment description
                     user_input = inputs.get_experiment_description()
                     if user_input == "q":
                         stop_flag = True
                         break
+                    elif user_input == "test":
+                        tag.write_to_csv = False
                     tag.comments = user_input
 
                     print("\nPress control to start and stop. Press q to quit")
 
-
+            #end program on q press
             elif keyboard.is_pressed('q'):
                 stop_flag = True
+
+        # stop connections and close files
         if tag:
             tag.close_csv()
         client.loop_stop()
         client.disconnect()
 
+# Handles audio triggers
 class PlayAudio(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.audio_player = AudioPlayer()
         self.previous_zone = None
-
         self._wait_duration = 0.0
         self.previous_time = None
 
@@ -148,23 +161,42 @@ class PlayAudio(threading.Thread):
             if not running:
                 continue
             print(tag.zone.name)
+
+            # set a wait duration to prevent triggers while audio is playing
             if self._wait_duration <= 0:
+                # Compare previous zone to current zone to control triggers
                 if self.previous_zone != tag.zone.name:
                     self.previous_zone = tag.zone.name
-                    url = "http://192.168.0.103:5000/static/recording_1.mp3"
+
+                    # Play mp3 from url
+                    url = self.get_url(tag.zone.name)
                     filename, headers = urlretrieve(url)
                     audio = MP3(filename)
                     self._wait_duration = audio.info.length
                     self.audio_player.play_url(url)
+
                     self.previous_time = time.time()
             else:
                 self._wait_duration -= (time.time()-self.previous_time)
                 self.previous_time = time.time()
+    def get_url(self, zone):
+        if zone == "Living Room":
+            return "http://192.168.0.103:5000/static/LivingRoom.mp3"
+
+        if zone == "Kitchen":
+            return "http://192.168.0.103:5000/static/Kitchen.mp3"
+
+        if zone == "Bedroom":
+            return "http://192.168.0.103:5000/static/Bedroom.mp3"
+
+        if zone == "Washroom":
+            return "http://192.168.0.103:5000/static/Washroom.mp3"
+
 
 
 
 if __name__ == '__main__':
-    tag = TagMoving(TAG_ID)
-    # tag = TagMoving(inputs.get_tag_id())
+    tag = TagMoving(config.TAG_ID)
     StartThread().start()
+
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py

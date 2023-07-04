@@ -1,6 +1,6 @@
-'''Launch Web App Here
+'''Launch Web App Here. Serves as a host for direct mp3 links.
 '''
-from flask import Flask, request
+from flask import Flask
 from waitress import serve
 
 app = Flask(__name__)

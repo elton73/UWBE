@@ -1,9 +1,13 @@
+# Generate an accuracy table (csv with all accuracies for different settings),
+# generate a calibration table (csv with all settings that hold within a certain accuracy for multiple experiments)
+# generate a speed plot
+
 import os
 import ast
 import csv
 import time
 import project.utils.inputs as inputs
-from project.experiment_tools.experiments import TagMovingV2 as TagMovingV2
+from project.experiment_tools.experiments import TagMovingV2
 from project.experiment_tools.tags import RawData as RawData
 from project.utils.progress_bar import ProgressBar, find_common_settings
 from config import TAG_ID
@@ -201,9 +205,8 @@ def generate_calibration_table(datasets, indexes, max_error):
 
     print(f"\n{len(common_settings)} common settings found!")
 
-
 def generate_speed_data(datasets, indexes, averaging_window):
-    save_speed = False
+    save_speed = False # Toggle if you want to save speed data
 
     for i, dataset in zip(indexes, datasets):
         dataset.pop(0)

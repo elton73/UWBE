@@ -124,7 +124,7 @@ def get_averaging_window():
             print("Invalid Input. Please Try Again!")
 
 def get_mp3_file():
-    user_input = input("Enter file name: ")
+    user_input = input("Enter file name (Don't forget .mp3): ")
     if user_input == "q":
         return "q"
     return user_input

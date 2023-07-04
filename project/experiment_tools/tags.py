@@ -134,7 +134,6 @@ class Data:
         self.speed = 0
         self.index = None
         self.raw_coordinates = None
-        self.zone = self.Zone()
 
     def get_timestamp(self):
         local_datetime = datetime.datetime.fromtimestamp(self.raw_time)

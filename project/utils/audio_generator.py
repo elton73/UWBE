@@ -1,6 +1,6 @@
+#generate new mp3 files here from text to speech (Should probably just use an online generator)
+
 import pyttsx3
-from pydub import AudioSegment
-from pydub.playback import play
 from config import PROJECT_DIRECTORY
 import os
 from inputs import get_mp3_file, get_text

@@ -8,7 +8,7 @@ from matplotlib import path, pyplot as plt
 from project.utils.accuracy import Accuracy
 from project.experiment_tools.tags import Data
 from collections import Counter
-from config import PROJECT_DIRECTORY
+import config
 
 # Modified version of Tag class for a moving experiment
 class TagMoving(Accuracy):
@@ -23,9 +23,10 @@ class TagMoving(Accuracy):
         self.gold_standard_intervals = []
         self.coordinates = None
         self.zone = self.Zone()
+        self.write_to_csv = True
 
     def add_data(self, data):
-        if not self.csv_file:
+        if not self.csv_file and self.write_to_csv:
             self.setup_csv()
         try:
             accelerometer = data['data']['tagData']['accelerometer'][0]
@@ -37,11 +38,12 @@ class TagMoving(Accuracy):
         update_rate = data['data']['metrics']['rates']['update']
 
         raw_data = [self.coordinates, accelerometer, raw_time, update_rate, self.zone.name]
-        self.csv_writer.writerow(raw_data)
+        if self.write_to_csv:
+            self.csv_writer.writerow(raw_data)
 
     def setup_csv(self):
         counter = 1
-        data_dir = os.path.join(PROJECT_DIRECTORY,
+        data_dir = os.path.join(config.PROJECT_DIRECTORY,
                                 "csv",
                                 self.tag_id,
                                 "experiments",
@@ -76,8 +78,6 @@ class TagMoving(Accuracy):
             self.previous_name = None
             self.zone_buffer = []
 
-            self._timer = 0.0
-
             self.kitchen = path.Path([
                 (6449, 2910), (7908, 5473), (10287, 4885), (9639, 2057)
             ])
@@ -93,7 +93,6 @@ class TagMoving(Accuracy):
             ])
 
         def get(self, coordinates):
-            name = None
             if not coordinates:
                 name = "No Coordinates"
             elif self.living_room.contains_point(coordinates):
@@ -174,34 +173,44 @@ class TagMovingV2(Accuracy):
         #plot
         self.speeds = []
 
+    # add a data point and process it
     def add_data(self, raw_data):
-        self.index += 1
+        self.index += 1  # set index to track current data point
+
+        # fill a data buffer. This buffer has the live data
         self.raw_data_buffer.append(raw_data)
         if len(self.raw_data_buffer) < self.averaging_window_threshold:
             return
 
+        # use an averaging window to average the positioning data. The program will have a delay based on this window
         index = self.averaging_window_threshold // 2
         current_coordinate = self.raw_data_buffer[index]
         if not self.start_of_program:
             self.start_of_program = current_coordinate.raw_time
+
         data = Data(self.get_average_pos(), current_coordinate.accelerometer, current_coordinate.raw_time,
                     current_coordinate.update_rate)
         data.raw_coordinates = current_coordinate.coordinates
+
         self.raw_data_buffer.pop(0)
         data.index = self.index - index
+
+        # fill another data_buffer that has the averaged coordinates. This buffer will be delayed
         if len(self.data_buffer) < 1:
             self.data_buffer.append(data)
             return
+
+        # get the speed from averaged coordinates
         data.set_speed(self.data_buffer[-1])
         self.data_buffer.append(data)
-        if len(self.data_buffer) > 20:
+        if len(self.data_buffer) > 20:  # set data_buffer to size of 20
             self.data_buffer.pop(0)
-        # debug
-        # print(
-        #             f"{self.data_buffer[-1].speed} and {self.data_buffer[-1].coordinates} at {self.data_buffer[-1].index}")
         self.speeds.append(self.data_buffer[-1].speed)
+
+        # save data to csv
         if self.save_speeds:
             self.write_speed_csv()
+
         self.evaluate_data()
 
     def get_average_pos(self):
@@ -212,8 +221,8 @@ class TagMovingV2(Accuracy):
             sum_y += i.y
         return [sum_x / len(self.raw_data_buffer), sum_y / len(self.raw_data_buffer)]
 
+    # Calculate how long the tag has been moving based on speed data
     def evaluate_data(self):
-
         if self.data_buffer[-1].speed > self.speed_threshold:
             self.moving_count += 1
         else:
@@ -233,7 +242,7 @@ class TagMovingV2(Accuracy):
                     moving_time = self.end_of_movement_time - self.start_of_movement_time
                     if moving_time > 0:
                         self.moving_time += moving_time
-                        self.moving_time_intervals.append(moving_time)
+                        self.moving_time_intervals.append(round(moving_time, 2))
                         self.transition_count += 1
                         self.moving_time_indexes.append([self.start_index, self.end_index])
                 self.is_moving = False
@@ -254,6 +263,7 @@ class TagMovingV2(Accuracy):
                 self.start_index = d.index
                 return d.raw_time
 
+    # Find the accuracy of the program
     def get_output(self):
         if self.save_data and not self.csv_file:
             self.setup_csv()
@@ -299,7 +309,7 @@ class TagMovingV2(Accuracy):
 
     def setup_speed_csv(self):
         if self.save_speeds:
-            data_dir = os.path.join(os.getcwd(),
+            data_dir = os.path.join(config.PROJECT_DIRECTORY,
                                     "csv",
                                     self.tag_id,
                                     "experiments",
@@ -318,7 +328,7 @@ class TagMovingV2(Accuracy):
             self.speed_csv_writer.writerow(['comments', "speed", "coordinates", "index"])
 
     def setup_csv(self):
-        data_dir = os.path.join(os.getcwd(),
+        data_dir = os.path.join(config.PROJECT_DIRECTORY,
                                 "csv",
                                 self.tag_id,
                                 "experiments",
@@ -340,6 +350,7 @@ class TagMovingV2(Accuracy):
                                   'count', 'speed_threshold', 'averaging_window', 'total_time', 'date recorded',
                                   'movement_intervals', 'gold_standard_movement_intervals'])
 
+    # Reset the object instance when running a new experiment
     def reset(self, comments, exp_number):
         self.experiment_number = exp_number
         self.comments = comments
