@@ -52,6 +52,7 @@ def on_message(client, userdata, msg):
         if not tag or data['tagId'] != tag.tag_id:
             print(f"Cannot find tag with tag id: {tag.tag_id}")
             continue
+        print(data)
         tag.add_data(data)
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
@@ -84,6 +85,7 @@ class StartThread(threading.Thread):
         if user_input == "q":
             stop_flag = True
             return
+        # writing test as the description doesn't generate a csv
         elif user_input == "test":
             tag.enable_csv = False
         tag.comments = user_input

@@ -12,5 +12,6 @@ def wlan_ip():
 TAG_ID = os.getenv("TAG_ID")
 PROJECT_DIRECTORY = os.getenv("PROJECT_DIRECTORY")
 IPV4_ADDRESS = wlan_ip()
+CAST_IP = os.getenv("CAST_UP")
 CAST_UUID = os.getenv("CAST_UUID")
 

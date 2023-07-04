@@ -24,7 +24,7 @@ class TagMoving(Accuracy):
         self.zone = self.Zone()
 
         #  raw data csv
-        self.enable_csv = True
+        self.enable_csv = True # set to true if saving a raw dataset
         self.csv_file = None
         self.csv_writer = None
 

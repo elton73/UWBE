@@ -10,10 +10,11 @@ class AudioPlayer:
     def get_chromecast(self):
         # Try connecting to chromecast directly
         try:
-            cast = pychromecast.Chromecast(config.IPV4_ADDRESS)
+            cast = pychromecast.Chromecast(config.CAST_IP)
             cast.wait()
             print(cast)
             self.cast = cast
+            self.mc = self.cast.media_controller
             return
         except:
             print("Connection attempt failed. Retrying...", end="\n")
@@ -27,6 +28,7 @@ class AudioPlayer:
                     cast.wait()
                     print(cast)
                     self.cast = cast
+                    self.mc = self.cast.media_controller
                     return
         except Exception as e:
             print(e)
