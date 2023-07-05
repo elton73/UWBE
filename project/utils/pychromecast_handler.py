@@ -26,7 +26,7 @@ class AudioPlayer:
                 if str(chromecast.device.uuid) == config.CAST_UUID:
                     cast = chromecast
                     cast.wait()
-                    print(cast)
+                    print(f"Connection Successful: {cast}")
                     self.cast = cast
                     self.mc = self.cast.media_controller
                     return

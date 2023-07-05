@@ -2,7 +2,6 @@
 Conduct a movement experiment here.
 """
 
-import socket
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -52,7 +51,6 @@ def on_message(client, userdata, msg):
         if not tag or data['tagId'] != tag.tag_id:
             print(f"Cannot find tag with tag id: {tag.tag_id}")
             continue
-        print(data)
         tag.add_data(data)
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
@@ -163,6 +161,9 @@ class PlayAudio(threading.Thread):
             if not tag:
                 break
             if not running:
+                self.previous_zone = None
+                self._wait_duration = 0.0
+                self.previous_time = None
                 continue
             print(tag.zone.name)
 
@@ -171,15 +172,14 @@ class PlayAudio(threading.Thread):
                 # Compare previous zone to current zone to control triggers
                 if self.previous_zone != tag.zone.name:
                     self.previous_zone = tag.zone.name
-
-                    # Play mp3 from url
-                    url = self.get_url(tag.zone.name)
-                    filename, headers = urlretrieve(url)
-                    audio = MP3(filename)
-                    self._wait_duration = audio.info.length
-                    self.audio_player.play_url(url)
-
-                    self.previous_time = time.time()
+                    if not tag.zone.name == "Out Of Bounds":
+                        # Play mp3 from url
+                        url = self.get_url(tag.zone.name)
+                        filename, headers = urlretrieve(url)
+                        audio = MP3(filename)
+                        self._wait_duration = audio.info.length
+                        self.audio_player.play_url(url)
+                        self.previous_time = time.time()
             else:
                 self._wait_duration -= (time.time()-self.previous_time)
                 self.previous_time = time.time()

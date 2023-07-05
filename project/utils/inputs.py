@@ -49,12 +49,28 @@ def choose_csvs():
     indexes = []
     print("Enter s to begin or q to quit")
     while 1:
+        setup_type = str(input("Enter setup type number: "))
+        path = os.path.join(os.getcwd(),
+                            "../../",
+                            "csv",
+                            TAG_ID,
+                            "experiments",
+                            "moving_experiment",
+                            "ILS",
+                            f"setup_{setup_type}",
+                            "raw_data")
+        if not os.path.exists(path):
+            print(path)
+            print("No such path! Please Try Again")
+        else:
+            break
+    while 1:
         counter = str(input("Enter an experiment number: "))
         if "q" in counter:  # quit calibration
             return "q"
         elif "s" in counter:  # begin calibration
             if len(datasets) > 0:
-                return datasets, indexes
+                return setup_type, datasets, indexes
             else:
                 print("No data!")
         elif counter.isnumeric() and counter not in indexes:
@@ -65,6 +81,7 @@ def choose_csvs():
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
+                                f"setup_{setup_type}",
                                 "raw_data",
                                 f"Exp_{counter}.csv")
             if not os.path.exists(path):

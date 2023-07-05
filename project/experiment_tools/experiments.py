@@ -27,9 +27,10 @@ class TagMoving(Accuracy):
         self.enable_csv = True # set to true if saving a raw dataset
         self.csv_file = None
         self.csv_writer = None
+        self.setup_type = "setup_2"
 
         #  furniture detection for positioning accuracy
-        self.enable_furniture_detection = True  # set to true if saving a furniture detection dataset
+        self.enable_furniture_detection = False  # set to true if saving a furniture detection dataset
         self.furniture_csv_file = None
         self.furniture_csv_writer = None
 
@@ -60,6 +61,7 @@ class TagMoving(Accuracy):
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
+                                self.setup_type,
                                 "raw_data")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
@@ -94,7 +96,7 @@ class TagMoving(Accuracy):
                                 "experiments",
                                 "furniture_detection",
                                 "ILS",
-                                "raw_data")
+                                self.setup_type)
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         csv_file = os.path.join(data_dir, f"Exp_{counter}.csv")
@@ -176,6 +178,7 @@ class TagMovingV2(Accuracy):
         self.speed_csv_file = None
         self.speed_csv_writer = None
         self.save_speeds = False
+        self.setup_type = "1"
         # constants
         self.averaging_window_threshold = 5
         self.speed_threshold = 0.3  # min speed
@@ -369,6 +372,7 @@ class TagMovingV2(Accuracy):
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
+                                f"setup_{self.setup_type}"
                                 "Results")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)

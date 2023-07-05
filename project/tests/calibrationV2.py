@@ -23,7 +23,8 @@ def main():
     user_input = inputs.choose_csvs()
     if user_input == "q":
         return
-    datasets, indexes = user_input
+    setup_type, datasets, indexes = user_input
+    tag.setup_type = setup_type
 
     time_start = time.perf_counter()
     if calibration_type == '1':
@@ -183,7 +184,13 @@ def generate_calibration_table(datasets, indexes, max_error):
         print("\nNo Common Settings! :( ")
         return
 
-    path = os.path.join(os.getcwd(), "../../csv", tag.tag_id, "experiments", "moving_experiment", "ILS", "Calibrations")
+    path = os.path.join(os.getcwd(), "../../csv",
+                        tag.tag_id,
+                        "experiments",
+                        "moving_experiment",
+                        "ILS",
+                        f"setup_{tag.setup_type}",
+                        "Calibrations")
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -230,3 +237,4 @@ def generate_speed_data(datasets, indexes, averaging_window):
 
 if __name__ == '__main__':
     main()
+
