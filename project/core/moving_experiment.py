@@ -140,10 +140,10 @@ class StartThread(threading.Thread):
                 stop_flag = True
 
         # stop connections and close files
-        if tag:
-            tag.close_csv()
         client.loop_stop()
         client.disconnect()
+        if tag:
+            tag.close_csv()
 
 # Handles audio triggers
 class PlayAudio(threading.Thread):
