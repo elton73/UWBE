@@ -372,7 +372,7 @@ class TagMovingV2(Accuracy):
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
-                                f"setup_{self.setup_type}"
+                                f"setup_{self.setup_type}",
                                 "Results")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)

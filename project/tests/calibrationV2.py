@@ -113,7 +113,7 @@ def generate_accuracy_table(datasets, indexes):
 
 def generate_calibration_table(datasets, indexes, max_error):
     averaging_window_threshold_min = 3
-    averaging_window_threshold_max = 35
+    averaging_window_threshold_max = 71
     averaging_window_threshold_increment = 2
     averaging_window_threshold = averaging_window_threshold_min
     speed_threshold_min = 0.1
