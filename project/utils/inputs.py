@@ -47,9 +47,10 @@ def get_transition_count():
 def choose_csvs():
     datasets = []
     indexes = []
-    print("Enter s to begin or q to quit")
     while 1:
         setup_type = str(input("Enter setup type number: "))
+        if "q" in setup_type:  # quit calibration
+            return "q"
         path = os.path.join(os.getcwd(),
                             "../../",
                             "csv",
@@ -64,6 +65,7 @@ def choose_csvs():
             print("No such path! Please Try Again")
         else:
             break
+    print("Enter s to begin or q to quit")
     while 1:
         counter = str(input("Enter an experiment number: "))
         if "q" in counter:  # quit calibration

@@ -415,6 +415,7 @@ class TagMovingV2(Accuracy):
         self.end_index = None
         self.start_of_program = None
         self.gold_standard_intervals = []
+        self.speeds = []
 
     def close_csv(self):
         if self.csv_file:
