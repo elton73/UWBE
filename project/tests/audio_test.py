@@ -15,7 +15,7 @@ if __name__ == '__main__':
         mc.play_media(url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", content_type='audio/mp3')
         mc.block_until_active()
         mc.play()
-        time.sleep(5)
+        time.sleep(3)
         mc.pause()
     except Exception as e:
         print(e)
@@ -33,7 +33,7 @@ if __name__ == '__main__':
                                                  content_type='audio/mp3')
                 mc.block_until_active()
                 mc.play()
-                time.sleep(5)
+                time.sleep(3)
                 mc.pause()
                 print("Connection Successful")
                 break

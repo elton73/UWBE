@@ -9,7 +9,8 @@ from project.experiment_tools.tags import Data
 import csv
 from project.utils.accuracy import Accuracy
 import time
-from project.utils import find_common_settings
+from project.utils.progress_bar import find_common_settings
+import config
 
 
 tag = None
@@ -45,7 +46,7 @@ class Tag_Moving(Accuracy):
         self.time_reference = None
         self.setup_complete = False
 
-        self.time_begin_of_program = None
+        self.start_of_program = None
         self.data_points = 0
         self.index = None
 
@@ -60,8 +61,13 @@ class Tag_Moving(Accuracy):
         self.transition_count = 0
         self.experiment_number = None
         self.error = 0.0
-        self.movement_intervals = []
         self.start_of_movement = None
+
+        self.gold_standard_transition_count = None
+        self.gold_standard_time = None
+        self.gold_standard_intervals = None
+        self.moving_time_intervals = []
+        self.setup_type = "1"
 
     def add_data(self, coordinates, accelerometer, raw_time, update_rate):
         if not self.csv_file and self.save_data:
@@ -87,8 +93,8 @@ class Tag_Moving(Accuracy):
 
         elif (data_time - self.previous_time) > self.TIMEFRAME:
             self.setup_complete = True
-            if not self.time_begin_of_program:
-                self.time_begin_of_program = data_time
+            if not self.start_of_program:
+                self.start_of_program = data_time
                 self.time_reference = data_time
                 self.previous_averaging_time = data_time
 
@@ -103,7 +109,7 @@ class Tag_Moving(Accuracy):
                 self.is_moving = True
             elif self.average_distance_travelled <= self.THRESHOLD and (self.is_moving or self.is_moving is None):
                 if self.is_moving:
-                    self.movement_intervals.append((self.averaging_time - self.start_of_movement))
+                    self.moving_time_intervals.append((self.averaging_time - self.start_of_movement))
                 self.add_time()
                 self.is_moving = False
             self.previous_time = data_time
@@ -138,7 +144,9 @@ class Tag_Moving(Accuracy):
                                 self.tag_id,
                                 "experiments",
                                 "moving_experiment",
-                                "ILS")
+                                "ILS",
+                                "setup_2",
+                                "Calibration_1")
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
         tag_csv = os.path.join(data_dir, f"Exp_{self.experiment_number}_Results.csv")
@@ -154,42 +162,12 @@ class Tag_Moving(Accuracy):
             self.csv_file.close()
             self.csv_file = None
 
-    def get_output(self, gold_standard_time, gold_standard_transitions):
-        self.gold_standard_time = gold_standard_time
-        self.gold_standard_transitions = gold_standard_transitions
-        self.error = self.moving_time - self.gold_standard_time
-        time_elapsed = self.old_data[self.index].raw_time - self.time_begin_of_program
-
-        if self.moving_time > time_elapsed:
-            print("Error. Moving time is greater than time elapsed.")
-            raise SystemExit
-
-        if self.moving_time >= gold_standard_time:
-            self.true_positives = gold_standard_time
-            self.false_positives = self.moving_time - gold_standard_time
-            self.true_negatives = time_elapsed - self.moving_time
-            self.false_negatives = 0
-
-        elif self.moving_time < gold_standard_time:
-            self.true_positives = self.moving_time
-            self.false_positives = 0
-            self.true_negatives = time_elapsed - gold_standard_time
-            self.false_negatives = gold_standard_time - self.moving_time
-        self.accuracy = self.get_accuracy()
-
-        #debug
-        # print(f"Accuracy (decimal): {self.accuracy}, Time_elapsed: {time_elapsed}, Time Spent Moving: "
-        #       f"{self.moving_time}, Actual Time Moving: {gold_standard}, "
-        #       f", datapoints = {self.count}")
-
-        self.write_csv(time_elapsed)
-
     def write_csv(self, time_elapsed):
         if self.save_data:
             self.csv_writer.writerow(
                 [self.tag_id, self.comments, self.accuracy, self.error,
                  self.transition_count, self.gold_standard_transitions, self.gold_standard_time, self.moving_time, time_elapsed - self.moving_time,
-                 self.old_data[self.index].raw_time - self.time_begin_of_program,
+                 self.old_data[self.index].raw_time - self.start_of_program,
                  self.AVERAGING_WINDOW, self.THRESHOLD, self.TIMEFRAME, self.old_data[self.index].update_rate,
                  self.old_data[self.index].timestamp])
 
@@ -203,7 +181,7 @@ class Tag_Moving(Accuracy):
         self.count = 0
         self.old_data = []
         self.time_reference = None
-        self.time_begin_of_program = None
+        self.start_of_program = None
         self.index = int(self.AVERAGING_WINDOW / 2)
         self.timestamp = None
         self.previous_time = None
@@ -226,8 +204,35 @@ class Tag_Moving(Accuracy):
         self.transition_count = 0
         self.experiment_number = exp_number
         self.error = 0.0
-        self.movement_intervals = []
+        self.moving_time_intervals = []
 
+    def get_output(self):
+        if self.save_data and not self.csv_file:
+            self.setup_csv()
+        self.error = self.moving_time - self.gold_standard_time
+        self.total_time_elapsed = self.old_data[-1].raw_time - self.start_of_program
+
+        # get program accuracy
+        if self.moving_time >= self.gold_standard_time:
+            self.true_positives = self.gold_standard_time
+            self.false_positives = self.moving_time - self.gold_standard_time
+            self.true_negatives = self.total_time_elapsed - self.moving_time
+            self.false_negatives = 0
+        elif self.moving_time < self.gold_standard_time:
+            self.true_positives = self.moving_time
+            self.false_positives = 0
+            self.true_negatives = self.total_time_elapsed - self.gold_standard_time
+            self.false_negatives = self.gold_standard_time - self.moving_time
+        self.accuracy = self.get_accuracy()
+
+    # Check if any of the time interval errors are too large
+    def find_error(self, max_error):
+        if self.gold_standard_transition_count != self.transition_count:
+            return True
+        for i in range(int(self.gold_standard_transition_count)):
+            if abs(float(self.gold_standard_intervals[i]) - float(self.moving_time_intervals[i])) > max_error:
+                return True
+        return False
 
 def define_variables(tag):
     distance_threshold = None
@@ -280,15 +285,17 @@ def main():
     global tag, counter
 
     # Enter inputs here
-    tag_id = "10001009"
+    tag_id = config.TAG_ID
+    setup_type = "setup_2"
     save_data = False
-    target_accuracy = float(input("Enter target accuracy: "))
+    max_error = float(input("Enter Max Error: "))
     notes = input("Enter comments: ")
 
     indexes = []
     datasets = []
     tag = Tag_Moving(tag_id)
     tag.save_data = save_data
+    tag.setup_type = setup_type
     # Input form to choose which datasets to analyze
     input_flag = False
     print("Enter s to begin or q to quit")
@@ -303,14 +310,17 @@ def main():
 
         elif counter.isnumeric() and counter not in indexes:
             path = os.path.join(os.getcwd(),
-                                "../../csv",
+                                config.PROJECT_DIRECTORY,
+                                "csv",
                                 tag_id,
                                 "experiments",
                                 "moving_experiment",
                                 "ILS",
+                                setup_type,
                                 "raw_data",
                                 f"Exp_{counter}.csv")
             if not os.path.exists(path):
+                print(path)
                 print("No such experiment! Please Try Again")
             else:
                 file = open(path, "r")
@@ -344,13 +354,19 @@ def main():
     for i, dataset in zip(indexes, datasets):
         calibration_complete = False
         dataset.pop(0)
-        gold_standard_transitions = float(dataset.pop()[0])
+        gold_standard_intervals = ast.literal_eval(dataset.pop()[0])
         gold_standard_time = float(dataset.pop()[0])
+        gold_standard_transition_count = float(dataset.pop()[0])
 
         best_settings = []
         update_progress_bar = True
         while not calibration_complete:
             tag.set_variables(distance_threshold, timeframe, averaging_window, f"Exp_{i}", i)
+
+            tag.gold_standard_transition_count = gold_standard_transition_count
+            tag.gold_standard_time = gold_standard_time
+            tag.gold_standard_intervals = gold_standard_intervals
+
             for d in dataset:
                 coordinates = ast.literal_eval(d[0])
                 accelerometer = d[1]
@@ -358,15 +374,8 @@ def main():
                 update_rate = d[3]
                 tag.add_data(coordinates, accelerometer, raw_time, update_rate)
             tag.add_time()
-            tag.get_output(gold_standard_time, gold_standard_transitions)
-            if (tag.transition_count == tag.gold_standard_transitions) and \
-                    abs(tag.error/tag.gold_standard_transitions) < 0.5 and \
-                    (tag.accuracy >= target_accuracy):
-                # print(f"Accuracy: {tag.accuracy:.2f} Distance Threshold: {distance_threshold:.2f}, "
-                #       f"Timeframe: {timeframe:.2f}, "
-                #       f"Averaging Window: {averaging_window}, "
-                #       f"Error(s): {(tag.moving_time - tag.gold_standard_time):.2f}, "
-                #       f"Transitions: {tag.transition_count}")
+            tag.get_output()
+            if not tag.find_error(max_error):
                 best_settings.append((distance_threshold, timeframe, averaging_window))
             if update_progress_bar:
                 print(f"\r{float(100*progress_bar / progress_bar_max):.2f} %", end='')
@@ -386,6 +395,10 @@ def main():
         settings.append(best_settings)
         tag.close_csv()
 
+        # break the loop if no settings are found
+        if settings[int(i)-1] or len(find_common_settings(settings)) < 1:
+            break
+
     print("\n")
     common_settings = find_common_settings(settings)
     time_taken = (time.perf_counter() - time_start)
@@ -396,12 +409,13 @@ def main():
                         "experiments",
                         "moving_experiment",
                         "ILS",
+                        setup_type,
                         f'calibration_total_{calibration_number}.csv')
     with open(path, 'w',newline='') as f:
         writer = csv.writer(f)
         for i in common_settings:
             writer.writerow(i)
-        writer.writerow([f"Target Accuracy {target_accuracy}"])
+        writer.writerow([f"Max Error {max_error}"])
         writer.writerow([f"{notes}"])
 
     print(f"Time Taken: {time_taken:.2f}")
