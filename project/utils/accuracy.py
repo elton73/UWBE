@@ -5,7 +5,7 @@ class Accuracy():
         self.false_positives = None
         self.false_negatives = None
 
-    def get_sensitiviy(self):
+    def get_sensitivity(self):
         return self.true_positives/(self.true_positives+self.false_negatives)
 
     def get_specificity(self):

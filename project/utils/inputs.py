@@ -7,6 +7,13 @@ def get_tag_id():
     if user_input == "q":
         return "q"
     return user_input
+
+def get_patient_id():
+    user_input = input("Enter patient id: ")
+    if user_input == "q":
+        return "q"
+    return user_input
+
 def get_experiment_description():
     user_input = input("Enter Experiment Description: ")
     if user_input == "q":
@@ -39,6 +46,14 @@ def get_moving_time(tag):
 def get_transition_count():
     while 1:
         user_input = input("Enter Number Of Transitions: ")
+        if user_input.isnumeric() or user_input == "q":
+            return user_input
+        else:
+            print("Invalid Input. Please Try Again!")
+
+def choose_setup_number():
+    while 1:
+        user_input = input("Enter Setup Number: ")
         if user_input.isnumeric() or user_input == "q":
             return user_input
         else:

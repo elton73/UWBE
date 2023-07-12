@@ -11,3 +11,11 @@ protobuf-3.20.1
 waitress-2.1.2
 pyttsx3-2.90
 netifaces-0.11.0
+paho-mqtt~=1.6.1
+mutagen~=1.46.0
+sounddevice~=0.4.6
+numpy~=1.24.3
+scipy~=1.10.1
+pyttsx3~=2.90
+Flask~=2.3.2
+waitress~=2.1.2

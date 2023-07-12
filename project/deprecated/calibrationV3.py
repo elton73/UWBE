@@ -7,10 +7,11 @@ import ast
 import csv
 import time
 import project.utils.inputs as inputs
-from project.experiment_tools.experimentsV3 import TagMovingV3
-from project.experiment_tools.tags import RawData as RawData
+from project.deprecated.experimentsV3 import TagMovingV3
+from project.utils.tags import RawData as RawData
 from project.utils.progress_bar import ProgressBar, find_common_settings
 from config import TAG_ID
+import numpy as np
 
 tag = TagMovingV3(TAG_ID)
 
@@ -49,6 +50,10 @@ def main():
 
     print(f"\nTime Taken: {(time.perf_counter() - time_start):.2f}")
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts) / box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
 
 def generate_accuracy_table(datasets, indexes):
     averaging_window_threshold = averaging_window_threshold_min
@@ -109,7 +114,6 @@ def generate_calibration_table(datasets, indexes, max_error):
                              averaging_window_threshold_increment)
     progress_bar.set_max(progress_bar_max)
     settings = []
-    count = 0
 
     for i, dataset in zip(indexes, datasets):
         dataset.pop(0)
@@ -150,9 +154,8 @@ def generate_calibration_table(datasets, indexes, max_error):
                 averaging_window_threshold = averaging_window_threshold_min
                 speed_threshold = speed_threshold_min
         # break the loop if no settings are found
-        if settings[count] == [] or len(find_common_settings(settings)) < 1:
+        if settings == [] or len(find_common_settings(settings)) < 1:
             break
-        count += 1
 
 
     tag.close_csv()

@@ -7,22 +7,21 @@ import ast
 import csv
 import time
 import project.utils.inputs as inputs
-from project.experiment_tools.experimentsV2 import TagMovingV2
+from project.deprecated.experimentsV4 import TagMovingV4
 from project.utils.tags import RawData as RawData
 from project.utils.progress_bar import ProgressBar, find_common_settings
 from config import TAG_ID
+import numpy as np
 
-tag = TagMovingV2(TAG_ID)
+tag = TagMovingV4(TAG_ID)
 
 averaging_window_threshold_min = 3
 averaging_window_threshold_max = 71
 averaging_window_threshold_increment = 2
-speed_threshold_min = 0.1
-speed_threshold_max = 2.0
-speed_threshold_increment = 0.05
-count_min = 2
-count_max = 40
-count_increment = 2
+box_pts_threshold_min = 2
+box_pts_threshold_max = 20
+box_pts_threshold_increment = 1
+
 
 def main():
     user_input = inputs.get_calibration_type()
@@ -35,7 +34,6 @@ def main():
         return
     setup_type, datasets, indexes = user_input
     tag.setup_type = setup_type
-
     time_start = time.perf_counter()
     if calibration_type == '1':
         generate_accuracy_table(datasets, indexes)
@@ -55,13 +53,20 @@ def main():
     print(f"\nTime Taken: {(time.perf_counter() - time_start):.2f}")
 
 
+def smooth(y, box_pts):
+    box = np.ones(box_pts) / box_pts
+    y_smooth = np.convolve(y, box, mode='same')
+    return y_smooth
+
+
 def generate_accuracy_table(datasets, indexes):
     averaging_window_threshold = averaging_window_threshold_min
-    speed_threshold = speed_threshold_min
-    count = count_min
+    box_pts = box_pts_threshold_min
+
     save_data = True
     progress_bar = ProgressBar()
-    progress_bar_max = float(len(indexes) * ((count_max - count + count_increment) / count_increment) *
+    progress_bar_max = float(len(indexes) * ((box_pts_threshold_max - box_pts + box_pts_threshold_increment) /
+                                             box_pts_threshold_increment) *
                              (averaging_window_threshold_max - averaging_window_threshold +
                               averaging_window_threshold_increment) /
                              averaging_window_threshold_increment)
@@ -78,9 +83,8 @@ def generate_accuracy_table(datasets, indexes):
         while not calibration_complete:
             tag.reset(f"Exp_{i}", i)
             tag.save_data = save_data
-            tag.speed_threshold = speed_threshold
-            tag.count_threshold = count
             tag.averaging_window_threshold = averaging_window_threshold
+            tag.box_pts = box_pts
             tag.gold_standard_transition_count = gold_standard_transition_count
             tag.gold_standard_time = gold_standard_time
             tag.gold_standard_intervals = gold_standard_intervals
@@ -91,23 +95,22 @@ def generate_accuracy_table(datasets, indexes):
             tag.get_output()
             tag.write_csv()
 
-            speed_threshold += speed_threshold_increment
-
-            if speed_threshold > speed_threshold_max:
-                speed_threshold = speed_threshold_min
-                count += count_increment
+            box_pts += box_pts_threshold_increment
+            if box_pts > box_pts_threshold_max:
+                box_pts = box_pts_threshold_min
+                averaging_window_threshold += averaging_window_threshold_increment
                 progress_bar.update_bar()
                 progress_bar.print_output()
 
-            if count > count_max:
-                count = count_min
+            if box_pts > box_pts_threshold_max:
+                box_pts = box_pts_threshold_min
                 averaging_window_threshold += averaging_window_threshold_increment
 
             if averaging_window_threshold > averaging_window_threshold_max:
                 calibration_complete = True
+
                 averaging_window_threshold = averaging_window_threshold_min
-                speed_threshold = speed_threshold_min
-                count = count_min
+                box_pts = box_pts_threshold_min
 
     tag.close_csv()
     progress_bar.print_output()
@@ -115,10 +118,11 @@ def generate_accuracy_table(datasets, indexes):
 
 def generate_calibration_table(datasets, indexes, max_error):
     averaging_window_threshold = averaging_window_threshold_min
-    speed_threshold = speed_threshold_min
-    count = count_min
+    box_pts = box_pts_threshold_min
+
     progress_bar = ProgressBar()
-    progress_bar_max = float(len(indexes) * ((count_max - count + count_increment) / count_increment) *
+    progress_bar_max = float(len(indexes) * ((box_pts_threshold_max - box_pts + box_pts_threshold_increment) /
+                                             box_pts_threshold_increment) *
                              (averaging_window_threshold_max - averaging_window_threshold +
                               averaging_window_threshold_increment) /
                              averaging_window_threshold_increment)
@@ -136,9 +140,8 @@ def generate_calibration_table(datasets, indexes, max_error):
 
         while not calibration_complete:
             tag.reset(f"Exp_{i}", i)
-            tag.speed_threshold = speed_threshold
-            tag.count_threshold = count
             tag.averaging_window_threshold = averaging_window_threshold
+            tag.box_pts = box_pts
             tag.gold_standard_transition_count = gold_standard_transition_count
             tag.gold_standard_time = gold_standard_time
             tag.gold_standard_intervals = gold_standard_intervals
@@ -149,26 +152,20 @@ def generate_calibration_table(datasets, indexes, max_error):
             tag.get_output()
 
             if not tag.find_error(max_error):
-                best_settings.append((speed_threshold, count, averaging_window_threshold))
+                best_settings.append((averaging_window_threshold, box_pts))
 
-            speed_threshold += speed_threshold_increment
-
-            if speed_threshold > speed_threshold_max:
-                speed_threshold = speed_threshold_min
-                count += count_increment
+            box_pts += box_pts_threshold_increment
+            if box_pts > box_pts_threshold_max:
+                box_pts = box_pts_threshold_min
+                averaging_window_threshold += averaging_window_threshold_increment
                 progress_bar.update_bar()
                 progress_bar.print_output()
-
-            if count > count_max:
-                count = count_min
-                averaging_window_threshold += averaging_window_threshold_increment
 
             if averaging_window_threshold > averaging_window_threshold_max:
                 calibration_complete = True
                 settings.append(best_settings)
                 averaging_window_threshold = averaging_window_threshold_min
-                speed_threshold = speed_threshold_min
-                count = count_min
+                box_pts = box_pts_threshold_min
         # break the loop if no settings are found
         if settings == [] or len(find_common_settings(settings)) < 1:
             break
@@ -202,15 +199,16 @@ def generate_calibration_table(datasets, indexes, max_error):
     with open(file_csv, 'w', newline='') as f:
         writer = csv.writer(f)
         writer.writerow([f"Max Error: {max_error}s"])
-        writer.writerow(["speed_threshold", "count", "averaging_window_threshold"])
+        writer.writerow(["averaging_window_threshold", "box_pts"])
 
         for i in common_settings:
             writer.writerow(i)
 
     print(f"\n{len(common_settings)} common settings found!")
 
+
 def generate_speed_data(datasets, indexes, averaging_window):
-    save_speed = True # Toggle if you want to save speed data
+    save_speed = True  # Toggle if you want to save speed data
 
     for i, dataset in zip(indexes, datasets):
         dataset.pop(0)
@@ -218,6 +216,7 @@ def generate_speed_data(datasets, indexes, averaging_window):
 
         for k in range(count):
             dataset.pop()
+
         sorted_dataset = sorted(dataset, key=lambda sublist: sublist[2])
         tag.reset(f"Exp_{i}", i)
         tag.averaging_window_threshold = averaging_window
@@ -234,4 +233,3 @@ def generate_speed_data(datasets, indexes, averaging_window):
 
 if __name__ == '__main__':
     main()
-

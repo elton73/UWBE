@@ -7,12 +7,12 @@ import ast
 import csv
 import time
 import project.utils.inputs as inputs
-from project.experiment_tools.experimentsV2 import TagMovingV2
+from project.deprecated.experimentsV6 import TagMovingV6
 from project.utils.tags import RawData as RawData
 from project.utils.progress_bar import ProgressBar, find_common_settings
 from config import TAG_ID
 
-tag = TagMovingV2(TAG_ID)
+tag = TagMovingV6(TAG_ID)
 
 averaging_window_threshold_min = 3
 averaging_window_threshold_max = 71
@@ -59,7 +59,7 @@ def generate_accuracy_table(datasets, indexes):
     averaging_window_threshold = averaging_window_threshold_min
     speed_threshold = speed_threshold_min
     count = count_min
-    save_data = True
+    save_data = False
     progress_bar = ProgressBar()
     progress_bar_max = float(len(indexes) * ((count_max - count + count_increment) / count_increment) *
                              (averaging_window_threshold_max - averaging_window_threshold +
@@ -220,15 +220,14 @@ def generate_speed_data(datasets, indexes, averaging_window):
             dataset.pop()
         sorted_dataset = sorted(dataset, key=lambda sublist: sublist[2])
         tag.reset(f"Exp_{i}", i)
-        tag.averaging_window_threshold = averaging_window
+        tag.BUFFER_LENGTH = averaging_window
         tag.save_speeds = save_speed
         tag.setup_speed_csv()
 
         for d in sorted_dataset:
-            tag.add_data(RawData(ast.literal_eval(d[0]), d[1], float(d[2]), d[3]))
+            tag.add_data(RawData(ast.literal_eval(d[0]), ast.literal_eval(d[1]), float(d[2]), d[3]))
 
         tag.plot()
-        tag.write_speed_csv()
         tag.close_csv()
 
 

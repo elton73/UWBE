@@ -1,8 +1,8 @@
 """
-Class for analyzing the raw dataset V2
+Class for analyzing the raw dataset Version 2. Averages the data everytime a new datapoint is entered.
 """
 
-from project.experiment_tools.tags import Data
+from project.utils.data import DataNodeV2
 import os
 import csv
 from matplotlib import pyplot as plt
@@ -26,8 +26,8 @@ class TagMovingV2(Accuracy):
         self.averaging_window_threshold = 5
         self.speed_threshold = 0.3  # min speed
         self.count_threshold = 8
+        self.version = "2"
 
-        #reset
         self.is_moving = False
         self.moving_time = 0
         self.transition_count = 0
@@ -53,6 +53,7 @@ class TagMovingV2(Accuracy):
 
         #plot
         self.speeds = []
+        self.timestamps = []
 
     # add a data point and process it
     def add_data(self, raw_data):
@@ -69,8 +70,8 @@ class TagMovingV2(Accuracy):
         if not self.start_of_program:
             self.start_of_program = current_coordinate.raw_time
 
-        data = Data(self.get_average_pos(), current_coordinate.accelerometer, current_coordinate.raw_time,
-                    current_coordinate.update_rate)
+        data = DataNodeV2(self.get_average_pos(), current_coordinate.accelerometer, current_coordinate.raw_time,
+                          current_coordinate.update_rate)
         data.raw_coordinates = current_coordinate.coordinates
 
         self.raw_data_buffer.pop(0)
@@ -87,6 +88,7 @@ class TagMovingV2(Accuracy):
         if len(self.data_buffer) > self.count_threshold:
             self.data_buffer.pop(0)
         self.speeds.append(self.data_buffer[-1].speed)
+        self.timestamps.append(self.data_buffer[-1].raw_time)
 
         # save data to csv
         if self.save_speeds:
@@ -115,26 +117,18 @@ class TagMovingV2(Accuracy):
                 if not self.is_moving:
                     self.start_of_movement_time = self.get_start_of_movement_time()
                 self.is_moving = True
-                self.moving_count = 0
-                self.stationary_count = 0
             else:
                 if self.is_moving:
                     self.end_of_movement_time = self.get_end_of_movement_time()
-                    if self.end_of_movement_time is None or self.start_of_movement_time is None:
-                        for d in self.data_buffer:
-                            print(d.speed)
-                        print(self.speed_threshold)
-                        print(self.count_threshold)
-                        print(self.averaging_window_threshold)
                     moving_time = self.end_of_movement_time - self.start_of_movement_time
-                    if moving_time > 0:
+                    if moving_time >= 0.5: # filter out movements that are very short <0.5s
                         self.moving_time += moving_time
                         self.moving_time_intervals.append(round(moving_time, 2))
                         self.transition_count += 1
                         self.moving_time_indexes.append([self.start_index, self.end_index])
                 self.is_moving = False
-                self.moving_count = 0
-                self.stationary_count = 0
+            self.moving_count = 0
+            self.stationary_count = 0
             self.count = 0
 
     def get_end_of_movement_time(self):
@@ -185,9 +179,9 @@ class TagMovingV2(Accuracy):
             self.csv_writer.writerow(
                 [self.tag_id, self.comments, self.accuracy, self.error,
                  self.transition_count, self.gold_standard_transition_count, self.moving_time, self.gold_standard_time,
-                 self.count_threshold, self.speed_threshold, self.averaging_window_threshold, self.total_time_elapsed,
-                 self.data_buffer[-1].timestamp, self.moving_time_indexes, self.moving_time_intervals,
-                 self.gold_standard_intervals])
+                 self.total_time_elapsed, self.moving_time_intervals, self.gold_standard_intervals,
+                 self.moving_time_indexes, self.count_threshold, self.speed_threshold,
+                 self.averaging_window_threshold, self.data_buffer[-1].raw_time])
 
     def write_speed_csv(self):
         if self.save_speeds:
@@ -202,7 +196,8 @@ class TagMovingV2(Accuracy):
                                     "experiments",
                                     "moving_experiment",
                                     "ILS",
-                                    "Speeds")
+                                    "Speeds",
+                                    f"version_self.version")
             if not os.path.exists(data_dir):
                 os.makedirs(data_dir)
             number = 1
@@ -235,8 +230,9 @@ class TagMovingV2(Accuracy):
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(['tag_id', 'comments', 'accuracy (moving_time)', 'Error (seconds)', 'Transitions',
                                   'gold_standard_transition_count', 'moving_time', 'gold_standard_moving_time',
-                                  'count', 'speed_threshold', 'averaging_window', 'total_time', 'date recorded',
-                                  'movement_intervals', 'gold_standard_movement_intervals'])
+                                  'total_time', 'movement_intervals',  'gold_standard_movement_intervals',
+                                  'moving_time_indexes',  'count_threshold', 'speed_threshold',
+                                  'averaging_window', 'date recorded'])
 
     # Reset the object instance when running a new experiment
     def reset(self, comments, exp_number):
@@ -275,10 +271,110 @@ class TagMovingV2(Accuracy):
             self.speed_csv_file = None
 
     def plot(self):
-        time_range = []
-        count = 0.0
-        for i in range(len(self.speeds)):
-            count += 0.1
-            time_range.append(count)
-        plt.plot(time_range, self.speeds)
+        start_time = self.timestamps[0]
+        timestamps = []
+        for i in self.timestamps:
+            timestamps.append(i-start_time)
+        plt.plot(timestamps, self.speeds)
         plt.show()
+
+class DataProcessorV2:
+    def __init__(self, averaging_window_threshold, speed_threshold, count_threshold):
+
+        self.averaging_window_threshold = averaging_window_threshold
+        self.speed_threshold = speed_threshold
+        self.count_threshold = count_threshold
+
+        self.index = averaging_window_threshold // 2
+        self.current_data_point = None
+        self.raw_data_buffer = []
+        self.data_buffer = []
+
+        self.start_of_program = None
+
+        self.count = 0
+        self.moving_count = 0
+        self.stationary_count = 0
+        self.transition_count = 0
+        self.moving_time = 0.0
+        self.is_moving = False
+        self.start_of_movement_time = None
+        self.end_of_movement_time = None
+
+        self.ready = False
+
+    def add(self, raw_data):
+        self.raw_data_buffer.append(raw_data)
+
+    def process(self):
+        # fill data buffer with raw coordinates
+        if len(self.raw_data_buffer) < self.averaging_window_threshold:
+            return
+        self.current_data_point = self.raw_data_buffer[self.index]
+        self.raw_data_buffer.pop(0)
+        if not self.start_of_program:
+            self.start_of_program = self.current_data_point.raw_time
+
+        # create a data object
+        data = DataNodeV2(self.get_average_pos(), self.current_data_point.accelerometer, self.current_data_point.raw_time,
+                          self.current_data_point.update_rate)
+        data.raw_coordinates = self.current_data_point.coordinates
+
+        # fill data buffer with averaged coordinates
+        if len(self.data_buffer) < 1:
+            self.data_buffer.append(data)
+            return
+
+        # Once all buffers are filled, script is ready to process data
+        self.ready = True
+        # get the speed from averaged coordinates
+        data.set_speed(self.data_buffer[-1])
+        self.data_buffer.append(data)
+        if len(self.data_buffer) > self.count_threshold:
+            self.data_buffer.pop(0)
+        self.evaluate_data()
+
+    def evaluate_data(self):
+        if self.data_buffer[-1].speed > self.speed_threshold:
+            self.moving_count += 1
+        else:
+            self.moving_count -= 1
+        self.count += 1
+
+        if self.count == self.count_threshold:
+            if self.moving_count > 0:
+                if not self.is_moving:
+                    self.start_of_movement_time = self.get_start_of_movement_time()
+                self.is_moving = True
+            else:
+                if self.is_moving:
+                    self.end_of_movement_time = self.get_end_of_movement_time()
+                    moving_time = self.end_of_movement_time - self.start_of_movement_time
+                    if moving_time >= 0.5:  # filter out movements that are very short <0.5s
+                        self.moving_time += moving_time
+                        self.transition_count += 1
+                self.is_moving = False
+            self.moving_count = 0
+            self.stationary_count = 0
+            self.count = 0
+
+    def get_end_of_movement_time(self):
+        for d in self.data_buffer:
+            if d.speed < self.speed_threshold:
+                # instead of using the timestamp of the speed, use the timestamp from the first coordinate to appear
+                datapoint = next(i for i in self.data_buffer if i.raw_coordinates == d.raw_coordinates)
+                return datapoint.raw_time
+
+    def get_start_of_movement_time(self):
+        for d in reversed(self.data_buffer):
+            if d.speed > self.speed_threshold:
+                return d.raw_time
+
+    def get_average_pos(self):
+        sum_x = 0
+        sum_y = 0
+        for i in self.raw_data_buffer:
+            sum_x += i.x
+            sum_y += i.y
+        return [sum_x / len(self.raw_data_buffer), sum_y / len(self.raw_data_buffer)]
+

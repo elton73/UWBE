@@ -1,5 +1,5 @@
 """
-Conduct a movement experiment here.
+Conduct an experiment for calibrating thresholds and averaging windows.
 """
 
 import os
@@ -10,34 +10,23 @@ import keyboard
 import paho.mqtt.client as mqtt
 import json
 import ssl
-from project.experiment_tools.experiments import TagMoving
+from project.experiment_tools.tag_calibration import TagCalibration
 import time
 import project.utils.inputs as inputs
 from project.utils.pychromecast_handler import AudioPlayer
 import config
 from urllib.request import urlretrieve
 from mutagen.mp3 import MP3
+from project.utils.urls import get_url
 
 # globals
 running = False
 tag = None
 stop_flag = False
 
-"""
-Setup Pozyx Connection
-"""
-tenant_id = "63ee6a286f3dc2ff641a73e2"
-api_key = "13e46ac5-9788-46d0-89a4-111db4e6d858"
-
-host = "mqtt.cloud.pozyxlabs.com"
-port = 443
-topic = f"{tenant_id}/tags"
-username = tenant_id
-password = api_key
-
 def on_connect(client, userdata, flags, rc):
     print(mqtt.connack_string(rc))
-    client.subscribe(topic)
+    client.subscribe(config.topic)
 
 # Callback triggered by a new Pozyx data packet
 def on_message(client, userdata, msg):
@@ -47,6 +36,7 @@ def on_message(client, userdata, msg):
         if not running:
             continue
         if not data['success']:
+            print("Data unsuccessfully retrieved")
             continue
         if not tag or data['tagId'] != tag.tag_id:
             print(f"Cannot find tag with tag id: {tag.tag_id}")
@@ -57,7 +47,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
     print("Press control to start and stop. Press q to quit")
 
 client = mqtt.Client(transport="websockets")
-client.username_pw_set(username, password=password)
+client.username_pw_set(config.username, password=config.password)
 
 # sets the secure context, enabling the WSS protocol
 client.tls_set_context(context=ssl.create_default_context())
@@ -66,7 +56,7 @@ client.tls_set_context(context=ssl.create_default_context())
 client.on_connect = on_connect
 client.on_message = on_message
 client.on_subscribe = on_subscribe
-client.connect(host, port=port)
+client.connect(config.host, port=config.port)
 
 """
 Threading
@@ -77,6 +67,13 @@ class StartThread(threading.Thread):
 
     def run(self):
         global running, stop_flag
+
+        # Ask user for setup number
+        user_input = inputs.choose_setup_number()
+        if user_input == "q":
+            stop_flag = True
+            return
+        tag.setup_type = f"setup_{user_input}"
 
         # Ask user for experiment description
         user_input = inputs.get_experiment_description()
@@ -174,7 +171,7 @@ class PlayAudio(threading.Thread):
                     self.previous_zone = tag.zone.name
                     if not tag.zone.name == "Out Of Bounds":
                         # Play mp3 from url
-                        url = self.get_url(tag.zone.name)
+                        url = get_url(tag.zone.name)
                         filename, headers = urlretrieve(url)
                         audio = MP3(filename)
                         self._wait_duration = audio.info.length
@@ -183,25 +180,9 @@ class PlayAudio(threading.Thread):
             else:
                 self._wait_duration -= (time.time()-self.previous_time)
                 self.previous_time = time.time()
-    def get_url(self, zone):
-        if zone == "Living Room":
-            return f"http://{config.IPV4_ADDRESS}:5000/static/LivingRoom.mp3"
-
-        if zone == "Kitchen":
-            return f"http://{config.IPV4_ADDRESS}:5000/static/Kitchen.mp3"
-
-        if zone == "Bedroom":
-            return f"http://{config.IPV4_ADDRESS}:5000/static/Bedroom.mp3"
-
-        if zone == "Washroom":
-            return f"http://{config.IPV4_ADDRESS}:5000/static/Washroom.mp3"
-
-
-
-
 
 if __name__ == '__main__':
-    tag = TagMoving(config.TAG_ID)
+    tag = TagCalibration(config.TAG_ID)
     StartThread().start()
 
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py

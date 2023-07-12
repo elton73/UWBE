@@ -5,7 +5,7 @@ Calibrate speed, distance, averaging variables (Deprecated)
 import math
 import os
 import ast
-from project.experiment_tools.tags import Data
+from project.utils.tags import Data
 import csv
 from project.utils.accuracy import Accuracy
 import time

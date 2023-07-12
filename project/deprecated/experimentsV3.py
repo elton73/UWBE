@@ -2,7 +2,7 @@
 Class for analyzing the raw dataset V3
 """
 
-from project.experiment_tools.tags import Data
+from project.utils.tags import Data
 import os
 import csv
 from matplotlib import pyplot as plt
@@ -149,7 +149,7 @@ class TagMovingV3(Accuracy):
                 [self.tag_id, self.comments, self.accuracy, self.error,
                  self.transition_count, self.gold_standard_transition_count, self.moving_time, self.gold_standard_time,
                  self.speed_threshold, self.averaging_window_threshold, self.total_time_elapsed,
-                 self.data_buffer[-1].timestamp, self.moving_time_indexes, self.moving_time_intervals,
+                 self.data_buffer[-1].raw_time, self.moving_time_indexes, self.moving_time_intervals,
                  self.gold_standard_intervals])
 
     def write_speed_csv(self):
