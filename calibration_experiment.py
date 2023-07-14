@@ -12,17 +12,19 @@ import json
 import ssl
 from project.experiment_tools.tag_calibration import TagCalibration
 import time
-import project.utils.inputs as inputs
 from project.utils.pychromecast_handler import AudioPlayer
+import project.utils.inputs as inputs
 import config
 from urllib.request import urlretrieve
 from mutagen.mp3 import MP3
 from project.utils.urls import get_url
+from project.utils.directory_handler import DirectoryHandler
 
 # globals
 running = False
 tag = None
 stop_flag = False
+dir_handler = DirectoryHandler()
 
 def on_connect(client, userdata, flags, rc):
     print(mqtt.connack_string(rc))
@@ -68,68 +70,39 @@ class StartThread(threading.Thread):
     def run(self):
         global running, stop_flag
 
-        # Ask user for setup number
-        user_input = inputs.choose_setup_number()
-        if user_input == "q":
-            stop_flag = True
-            return
-        tag.setup_type = f"setup_{user_input}"
-
         # Ask user for experiment description
-        user_input = inputs.get_experiment_description()
-        if user_input == "q":
+        exp_description = inputs.get_experiment_description()
+        if exp_description == "q":
             stop_flag = True
             return
-        # writing test as the description doesn't generate a csv
-        elif user_input == "test":
-            tag.enable_csv = False
-        tag.comments = user_input
+
+        #get output directory to save csv
+        out = dir_handler.choose_output_directory()
+        if out == "q":
+            stop_flag = True
+            return
+        dir_handler.setup_csv("raw_data")
+        dir_handler.write_csv([exp_description])
 
         #Start all threads
         PlayAudio().start()
         client.loop_start()
 
+        countdown = 5
         while not stop_flag:
             # start and stop recording data by pressing ctrl
             if keyboard.is_pressed('ctrl'):
                 time.sleep(1.0)
                 keyboard.release('ctrl')
+                while countdown > 0:
+                    print(countdown)
+                    time.sleep(1)
+                    countdown -= 1
                 running = not running
                 if running:
                     print('Started')
                 else:
                     print('Stopped')
-
-                    if tag.enable_csv:
-                        # user enters gold standard number of transitions
-                        user_input = inputs.get_transition_count()
-                        if user_input == "q":
-                            stop_flag = True
-                            break
-                        tag.gold_standard_transition_count = user_input
-
-                        # user enters gold standard moving time for each transition
-                        user_input = inputs.get_moving_time(tag)
-                        if user_input == "q":
-                            stop_flag = True
-                            break
-                        tag.gold_standard_intervals = user_input
-                        tag.gold_standard_time = sum(tag.gold_standard_intervals)
-                        tag.write_transitions_to_csv()
-                        tag.write_time_to_csv()
-                        print("Results Saved!")
-                    tag.close_csv()
-                    tag.enable_csv = True  # reset csv flag
-
-                    # user enters experiment description
-                    user_input = inputs.get_experiment_description()
-                    if user_input == "q":
-                        stop_flag = True
-                        break
-                    elif user_input == "test":
-                        tag.enable_csv = False
-                    tag.comments = user_input
-
                     print("\nPress control to start and stop. Press q to quit")
 
             #end program on q press
@@ -139,8 +112,7 @@ class StartThread(threading.Thread):
         # stop connections and close files
         client.loop_stop()
         client.disconnect()
-        if tag:
-            tag.close_csv()
+        dir_handler.close_csvs()
 
 # Handles audio triggers
 class PlayAudio(threading.Thread):
@@ -185,4 +157,4 @@ if __name__ == '__main__':
     tag = TagCalibration(config.TAG_ID)
     StartThread().start()
 
-# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\moving_experiment.py
+# C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\project\core\calibration_experiment.py

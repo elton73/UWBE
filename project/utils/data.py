@@ -6,11 +6,9 @@ import datetime
 import math
 
 
-class DataNodeV2:
-    def __init__(self, c, a, r, u):
+class DataNode:
+    def __init__(self, c=None, a=None, r=None, u=None):
         self.coordinates = c
-        self.x = c[0]
-        self.y = c[1]
         self.accelerometer = a
         self.raw_time = r
         self.update_rate = u

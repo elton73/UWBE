@@ -8,7 +8,7 @@ from project.utils.timestamps import get_timestamp
 import time
 import csv
 from project.experiment_tools.zones import Zone
-from project.experiment_tools.experimentsV2 import DataProcessorV2
+from project.experiment_tools.data_processor_v1 import DataProcessorV1
 from project.utils.data import RawData
 
 
@@ -43,13 +43,13 @@ class Tag:
         self.count_threshold = 14
 
         # choose which data processing tool to use
-        self.data_processor = DataProcessorV2(self.averaging_window_threshold, self.speed_threshold,
+        self.data_processor = DataProcessorV1(self.averaging_window_threshold, self.speed_threshold,
                                               self.count_threshold)
 
         self.ready_flag = False
     def add_data(self, raw_data):
         # generate output csv file
-        if not self.csv_file:
+        if not self.csv_file: #todo: use directory_handler
             self.setup_csv()
 
         # save incoming data
@@ -98,7 +98,7 @@ class Tag:
         ])
 
     def write_csv(self):
-        data = self.data_processor.data_buffer[-1]
+        data = self.data_processor.dataset[-1]
         self.csv_writer.writerow([
             self.patient_id,
             self.tag_id,

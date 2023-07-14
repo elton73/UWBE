@@ -169,3 +169,28 @@ def get_text():
         return "q"
     return user_input
 
+def get_zed_csv():
+    datasets = []
+    while 1:
+        path = str(input("Enter csv path: "))
+        if "q" in path:  # quit calibration
+            return "q"
+        else:
+            if not os.path.exists(path):
+                print(path)
+                print("No such file! Please Try Again")
+            else:
+                try:
+                    file = open(path, "r")
+                    data = list(csv.reader(file, delimiter=","))
+                    file.close()
+                    datasets.append(data)
+                    return datasets
+                except:
+                    print("Error opening file! Please Try Again")
+
+def get_object_id():
+    user_input = input("Enter object id: ")
+    if user_input == "q":
+        return "q"
+    return user_input
