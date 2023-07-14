@@ -17,14 +17,22 @@ class TagCalibration(Accuracy):
         self.coordinates = None
         self.zone = Zone()
 
+        self.csv_data = []
+
     def add_data(self, data):
         try:
             accelerometer = data['data']['tagData']['accelerometer'][0]
         except:
-            return
+            accelerometer = []
         self.coordinates = [data['data']['coordinates']['x'], data['data']['coordinates']['y']]
         self.zone.get(self.coordinates)
         raw_time = data['timestamp']
         update_rate = data['data']['metrics']['rates']['update']
-        raw_data = [self.coordinates, accelerometer, raw_time, update_rate, self.zone.name]
+        self.csv_data = [
+            self.coordinates,
+            accelerometer,
+            raw_time,
+            update_rate,
+            self.zone.name
+            ]
 

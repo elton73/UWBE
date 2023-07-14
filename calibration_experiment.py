@@ -44,6 +44,7 @@ def on_message(client, userdata, msg):
             print(f"Cannot find tag with tag id: {tag.tag_id}")
             continue
         tag.add_data(data)
+        dir_handler.write_csv(tag.csv_data)
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
     print("Press control to start and stop. Press q to quit")

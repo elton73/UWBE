@@ -18,11 +18,12 @@ from urllib.request import urlretrieve
 from mutagen.mp3 import MP3
 from project.utils.urls import get_url
 from project.experiment_tools.tag import Tag
+from project.utils.directory_handler import DirectoryHandler
 
 #globals
 running = False
 stop_flag = False
-tag = None
+dir_handler = DirectoryHandler()
 
 """
 Connecting to client
@@ -45,8 +46,7 @@ def on_message(client, userdata, msg):
             print(f"Cannot find tag with tag id: {tag.tag_id}")
             continue
         tag.add_data(data)
-        if tag.ready_flag:
-            print(tag.data_processor.current_data_point.coordinates)
+        dir_handler.write_csv(tag.csv_data)
 def on_subscribe(client, userdata, mid, granted_qos):
     print("Subscribed to topic!")
     print("Press control to start and stop. Press q to quit")
@@ -71,7 +71,18 @@ class StartThread(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
     def run(self):
-        global running, stop_flag
+        global running, stop_flag, tag
+
+        patient_id = inputs.get_patient_id()
+        if patient_id == "q":
+            quit()
+        tag_id = inputs.get_tag_id()
+        if tag_id == "q":
+            quit()
+        tag = Tag(tag_id, patient_id)
+
+        dir_handler.choose_output_directory()
+        dir_handler.setup_csv(f"{patient_id}")
 
         #Start all threads
         PlayAudio().start()
@@ -93,8 +104,7 @@ class StartThread(threading.Thread):
         # stop connections and close files
         client.loop_stop()
         client.disconnect()
-        if tag:
-            tag.close_csv()
+        dir_handler.close_csvs()
 
 #Audio Thread
 class PlayAudio(threading.Thread):
@@ -135,11 +145,4 @@ class PlayAudio(threading.Thread):
                 self.previous_time = time.time()
 
 if __name__ == '__main__':
-    patient_id = inputs.get_patient_id()
-    if patient_id == "q":
-        quit()
-    tag_id = inputs.get_tag_id()
-    if tag_id == "q":
-        quit()
-    tag = Tag(tag_id, patient_id)
     StartThread().start()

@@ -276,17 +276,14 @@ def generate_speed_data(datasets):
         tag.data_processor.averaging_window_threshold = averaging_window
         tag.data_processor.index = averaging_window // 2
         for d in sorted_dataset:
-            # try:
-            #     tag.add_data(RawData(ast.literal_eval(d[0]), d[1], float(d[2]), d[3]))
-            #     if save_speed and tag.data_processor.ready:
-            #         dir_handler.write_csv(tag.csv_data)
-            # except Exception as e:
-            #     print(e)
-            #     print("Process Failed. Please check that CSV files were correct.")
-            #     return
-            tag.add_data(RawData(ast.literal_eval(d[0]), d[1], float(d[2]), d[3]))
-            if save_speed and tag.data_processor.ready:
-                dir_handler.write_csv(tag.csv_data)
+            try:
+                tag.add_data(RawData(ast.literal_eval(d[0]), d[1], float(d[2]), d[3]))
+                if save_speed and tag.data_processor.ready:
+                    dir_handler.write_csv(tag.csv_data)
+            except Exception as e:
+                print(e)
+                print("Process Failed. Please check that CSV files were correct.")
+                return
 
         if compare_with_zed:
             zed_handler.filter_timestamps(tag.data_processor.timestamps[0], tag.data_processor.timestamps[1])

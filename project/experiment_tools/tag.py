@@ -2,11 +2,8 @@
 Class for generating a complete dataset for analysis
 """
 
-import os
-import config
 from project.utils.timestamps import get_timestamp
 import time
-import csv
 from project.experiment_tools.zones import Zone
 from project.experiment_tools.data_processor_v1 import DataProcessorV1
 from project.utils.data import RawData
@@ -18,24 +15,27 @@ class Tag:
         self.patient_id = patient_id
         self.datetime = get_timestamp(time.time())
 
+        self.csv_data_names = [
+            "patient_id",
+            "tag_id",
+            "raw_coordinates",
+            "averaged_coordinates",
+            "accelerometer",
+            "speed",
+            "is_moving",
+            "moving_time",
+            "update_rate",
+            "unix_time",
+            "date recorded"
+            ]
+        self.csv_data = []
+
         self.coordinates = None
         self.accelerometer = None
         self.speed = 0.0
         self.unix_time = None
         self.update_rate = None
-
-        self.moving_time = 0.0
-        self.total_time_elapsed = 0.0
-        self.transition_count = 0.0
         self.zone = Zone()
-
-        self.csv_file = None
-        self.csv_writer = None
-        self.setup_type = None
-
-        # buffers
-        self.raw_data_buffer = []
-        self.processed_data_buffer = []
 
         # calibration settings
         self.averaging_window_threshold = 25
@@ -43,15 +43,13 @@ class Tag:
         self.count_threshold = 14
 
         # choose which data processing tool to use
-        self.data_processor = DataProcessorV1(self.averaging_window_threshold, self.speed_threshold,
-                                              self.count_threshold)
+        self.data_processor = DataProcessorV1()
+        self.data_processor.averaging_window_threshold = self.averaging_window_threshold
+        self.data_processor.speed_threshold = self.speed_threshold
+        self.data_processor.count_threshold = self.count_threshold
 
         self.ready_flag = False
     def add_data(self, raw_data):
-        # generate output csv file
-        if not self.csv_file: #todo: use directory_handler
-            self.setup_csv()
-
         # save incoming data
         try:
             self.accelerometer = raw_data['data']['tagData']['accelerometer'][0]
@@ -70,36 +68,9 @@ class Tag:
         if not self.ready_flag:
             print("Started")
             self.ready_flag = True
-        self.write_csv()
 
-    def setup_csv(self):
-        directory = os.path.join(config.PROJECT_DIRECTORY,
-                                 "csv",
-                                 self.patient_id,
-                                 self.tag_id)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-
-        csv_file = os.path.join(directory, f"{self.datetime}.csv")
-        self.csv_file = open(csv_file, 'w', newline='')
-        self.csv_writer = csv.writer(self.csv_file)
-
-        self.csv_writer.writerow([
-            "patient_id",
-            "tag_id",
-            "raw_coordinates",
-            "averaged_coordinates",
-            "accelerometer",
-            "speed",
-            "is_moving",
-            "moving_time",
-            "update_rate",
-            "unix_time"
-        ])
-
-    def write_csv(self):
         data = self.data_processor.dataset[-1]
-        self.csv_writer.writerow([
+        self.csv_data = [
             self.patient_id,
             self.tag_id,
             data.raw_coordinates,
@@ -109,10 +80,6 @@ class Tag:
             self.data_processor.is_moving,
             self.data_processor.moving_time,
             data.update_rate,
-            data.raw_time
-        ])
-
-    def close_csv(self):
-        if self.csv_file:
-            self.csv_file.close()
-            self.csv_file = None
+            data.raw_time,
+            self.datetime
+            ]
