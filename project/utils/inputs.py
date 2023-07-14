@@ -121,29 +121,17 @@ def get_calibration_type():
             return user_input
         else:
             print("Invalid Input. Please Try Again!")
-def get_accuracy():
-    while 1:
-        user_input = input("Enter Target Accuracy (Decimal): ")
-        if user_input == "q":
-            return "q"
-        else:
-            try:
-                accuracy = float(user_input)
-                if 0 <= accuracy <= 1.0:
-                    return accuracy
-            except ValueError:
-                pass
-            print("Invalid Input. Please Try Again!")
 
-def get_max_error():
+def get_target_accuracy():
     while 1:
-        user_input = input("Enter Max Error (Seconds): ")
+        user_input = input("Enter target accuracy (Example 0.9): ")
         if user_input == "q":
             return "q"
         else:
             try:
-                accuracy = float(user_input)
-                return accuracy
+                if 0 <= user_input <= 1:
+                    accuracy = float(user_input)
+                    return accuracy
             except ValueError:
                 print("Invalid Input. Please Try Again!")
 

@@ -56,7 +56,7 @@ def main():
     calibration_type = user_input
 
     if calibration_type == "2":
-        max_error = inputs.get_max_error()
+        max_error = inputs.get_target_accuracy()
         if max_error == "q":
             return
 
@@ -167,9 +167,7 @@ def generate_accuracy_table(datasets):
     progress_bar.print_output()
 
 
-def generate_calibration_table(datasets, max_error):
-    dir_handler.setup_csv("calibration_table")
-
+def generate_calibration_table(datasets, accuracy):
     averaging_window_threshold = averaging_window_threshold_min
     speed_threshold = speed_threshold_min
     count = count_min
@@ -188,29 +186,31 @@ def generate_calibration_table(datasets, max_error):
         exp_description = dataset[0][0]
         dataset.pop(0)
         dir_handler.write_csv(tag.csv_data_names)
-        gold_standard_intervals = ast.literal_eval(dataset.pop()[0])
-        gold_standard_time = float(dataset.pop()[0])
-        gold_standard_transition_count = float(dataset.pop()[0])
         sorted_dataset = sorted(dataset, key=lambda sublist: sublist[2])
 
         best_settings = []
         while not calibration_complete:
             tag.exp_description = exp_description
             tag.data_processor.reset()
+            zed_handler.reset()
+
             tag.data_processor.speed_threshold = speed_threshold
             tag.data_processor.count_threshold = count
             tag.data_processor.averaging_window_threshold = averaging_window_threshold
             tag.data_processor.index = averaging_window_threshold // 2
-            tag.gold_standard_transition_count = gold_standard_transition_count
-            tag.gold_standard_time = gold_standard_time
-            tag.gold_standard_intervals = gold_standard_intervals
 
             for d in sorted_dataset:
                 tag.add_data(RawData(ast.literal_eval(d[0]), d[1], float(d[2]), d[3]))
 
-            tag.get_output()
+            zed_handler.filter_timestamps(tag.data_processor.start_of_program, tag.data_processor.dataset[-1].raw_time)
+            zed_handler.get_movement_intervals()
 
-            if not tag.find_error(max_error):
+            tag.gold_standard_time = zed_handler.total_moving_time
+            tag.gold_standard_intervals = zed_handler.movement_intervals
+            tag.gold_standard_transitions = zed_handler.transitions
+
+            tag.get_output()
+            if tag.accuracy <= accuracy:
                 best_settings.append((speed_threshold, count, averaging_window_threshold))
 
             speed_threshold += speed_threshold_increment
@@ -243,7 +243,7 @@ def generate_calibration_table(datasets, max_error):
         return
 
     dir_handler.setup_csv("calibration_table")
-    dir_handler.write_csv([f"Max Error: {max_error}s"])
+    dir_handler.write_csv([f"Target Accuracy: {accuracy}s"])
     dir_handler.write_csv(["speed_threshold", "count", "averaging_window_threshold"])
     for i in common_settings:
         dir_handler.write_csv(i)
@@ -290,7 +290,12 @@ def generate_speed_data(datasets):
 
         if compare_with_zed:
             zed_handler.filter_timestamps(tag.data_processor.timestamps[0], tag.data_processor.timestamps[1])
-            plt.plot(zed_handler.filtered_timestamps, zed_handler.filtered_velocities, label="Zed")
+            timestamps = []
+            velocities = []
+            for data in zed_handler.filtered_data:
+                timestamps.append(data.timestamp)
+                velocities.append(data.velocity)
+            plt.plot(timestamps, velocities, label="Zed")
             if smooth_data:
                 plt.plot(tag.data_processor.timestamps, smooth(tag.data_processor.speeds, 13), label="UWB")
             else:
