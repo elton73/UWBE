@@ -17,6 +17,8 @@ class TagCalibration(Accuracy):
         self.coordinates = None
         self.zone = Zone()
 
+        self.furniture_detection_experiment = False
+
         self.csv_data = []
 
     def add_data(self, data):
@@ -28,11 +30,18 @@ class TagCalibration(Accuracy):
         self.zone.get(self.coordinates)
         raw_time = data['timestamp']
         update_rate = data['data']['metrics']['rates']['update']
-        self.csv_data = [
-            self.coordinates,
-            accelerometer,
-            raw_time,
-            update_rate,
-            self.zone.name
+        if not self.furniture_detection_experiment:
+            self.csv_data = [
+                self.coordinates,
+                accelerometer,
+                raw_time,
+                update_rate,
+                self.zone.name
+                ]
+        else:
+            self.csv_data = [
+                raw_time,
+                self.coordinates[0],
+                self.coordinates[1]
             ]
 

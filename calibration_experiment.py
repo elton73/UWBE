@@ -21,10 +21,14 @@ from project.utils.urls import get_url
 from project.utils.directory_handler import DirectoryHandler
 
 # globals
-running = False
-tag = None
-stop_flag = False
+tag = TagCalibration(config.TAG_ID)
 dir_handler = DirectoryHandler()
+running = False
+stop_flag = False
+
+# Toggle to save data in furniture detection format
+furniture_detection_experiment = False
+tag.furniture_detection_experiment = furniture_detection_experiment
 
 def on_connect(client, userdata, flags, rc):
     print(mqtt.connack_string(rc))
@@ -82,8 +86,12 @@ class StartThread(threading.Thread):
         if out == "q":
             stop_flag = True
             return
-        dir_handler.setup_csv("raw_data")
-        dir_handler.write_csv([exp_description])
+
+        if not furniture_detection_experiment:
+            dir_handler.setup_csv("raw_data")
+            dir_handler.write_csv([exp_description])
+        else:
+            dir_handler.setup_csv("furniture_detection")
 
         #Start all threads
         PlayAudio().start()
@@ -155,7 +163,6 @@ class PlayAudio(threading.Thread):
                 self.previous_time = time.time()
 
 if __name__ == '__main__':
-    tag = TagCalibration(config.TAG_ID)
     StartThread().start()
 
 # C:\Users\ML-2\Documents\GitHub\UWBE\venv\Scripts\python C:\Users\ML-2\Documents\GitHub\UWBE\project\core\calibration_experiment.py

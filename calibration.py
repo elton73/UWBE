@@ -15,14 +15,14 @@ from project.utils.zed_handler import ZedHandler
 import numpy as np
 
 matplotlib.rcParams['interactive'] == True
-tag = TagAnalyzer(TAG_ID, data_processor="1")
+tag = TagAnalyzer(TAG_ID, data_processor="2")
 tag.activate_calibration_mode()
 zed_handler = ZedHandler()
 
 # settings for speed table
 save_speed = False # Toggle if you want to save speed data
 compare_with_zed = True # Toggle to overlay graphs with zed data
-smooth_data = True # Toggle to apply a smoothing function
+smooth_data = False # Toggle to apply a smoothing function
 
 # calibration settings to test
 averaging_window_threshold_min = 3

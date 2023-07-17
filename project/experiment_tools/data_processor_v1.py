@@ -1,3 +1,7 @@
+"""
+Average every data point
+"""
+
 from project.utils.data import DataNode
 
 class DataProcessorV1:
