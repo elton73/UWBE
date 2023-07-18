@@ -12,7 +12,7 @@ if __name__ == '__main__':
         cast = pychromecast.Chromecast(config.IPV4_ADDRESS)
         cast.wait()
         mc = cast.media_controller
-        mc.play_media(url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", content_type='audio/mp3')
+        mc.play_media(url="http://{config.IPV4_ADDRESS}:5000/static/LivingRoom.mp3", content_type='audio/mp3')
         mc.block_until_active()
         mc.play()
         time.sleep(3)
@@ -29,7 +29,7 @@ if __name__ == '__main__':
                 cast = chromecast
                 cast.wait()
                 mc = cast.media_controller
-                mc.play_media(url="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+                mc.play_media(url="http://{config.IPV4_ADDRESS}:5000/static/LivingRoom.mp3",
                                                  content_type='audio/mp3')
                 mc.block_until_active()
                 mc.play()
