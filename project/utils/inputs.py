@@ -131,6 +131,15 @@ def get_plot_type():
         else:
             print("Invalid Input. Please Try Again!")
 
+def get_calibration_plot_type():
+    print("1. Plot Count; 2. Plot Speed Threshold; 3. Plot Averaging Window; 4. Plot All")
+    while 1:
+        user_input = input("Enter Plot Type: ")
+        if user_input == '1' or user_input == '2' or user_input == '3' or user_input == '4' or user_input == "q":
+            return user_input
+        else:
+            print("Invalid Input. Please Try Again!")
+
 def get_target_accuracy():
     while 1:
         user_input = input("Enter target accuracy (Example 0.9): ")
