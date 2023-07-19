@@ -16,7 +16,7 @@ matplotlib.rcParams['interactive'] = True
 dir_handler = DirectoryHandler()
 img = plt.imread("setups/ils.png")
 
-save = False
+save = True
 
 # averaging windows to test
 averaging_window_threshold_min = 3
@@ -32,7 +32,7 @@ def main():
 
     # get single csv
     print("Choose a UWB CSV")
-    user_input = dir_handler.choose_single_csv()
+    user_input = dir_handler.choose_csvs()
     if user_input == "q":
         return
 
@@ -41,7 +41,6 @@ def main():
     # get output directory to save plot
     if save:
         print("Choose where files should be saved")
-        dir_handler.choose_output_directory()
         user_input = dir_handler.choose_output_directory()
         if user_input == "q":
             return
@@ -52,16 +51,18 @@ def main():
         plot_averaged_coordinates(datasets, plot_both=False)
     elif plot_type == "3":
         plot_averaged_coordinates(datasets, plot_both=True)
+
 def plot_raw_coordinates(datasets):
     for dataset in datasets:
-        dataset.pop(0)
+        title = dataset.pop(0)[0]
         x = []
         y = []
         for data in dataset:
             x.append(ast.literal_eval(data[0])[0])
             y.append(ast.literal_eval(data[0])[1])
         plt.imshow(img, extent=[0, 11400, 0, 10600]) # change the size of the image to match real-life size
-        plt.scatter(x, y, s=20)
+        plt.scatter(x, y, s=5)
+        plt.title(title)
 
         if save:
             # creating output file name for image
@@ -71,11 +72,12 @@ def plot_raw_coordinates(datasets):
                 count += 1
                 output = os.path.join(dir_handler.output_directory, f"img_{count}.png")
             plt.savefig(output)
+
         plt.show()
 
 def plot_averaged_coordinates(datasets, plot_both):
     dataset = datasets[0]
-    dataset.pop(0)
+    title = dataset.pop(0)[0]
     # Set window sizes to plot
     averaging_windows = []
     averaging_window_threshold = averaging_window_threshold_min
@@ -108,7 +110,7 @@ def plot_averaged_coordinates(datasets, plot_both):
             #     return
         plt.imshow(img, extent=[0, 11400, 0, 10600])  # change the size of the image to match real-life size
         plt.scatter(x_aver, y_aver, s=5, c='b', label='averaged_coordinates')
-        plt.title(f"Averaging Window: {averaging_window}")
+        plt.title(f"{title} (Averaging Window: {averaging_window})")
         if plot_both:
             plt.scatter(x_raw, y_raw, s=5, c='g', label='raw_coordinates')
             plt.legend(loc='upper left')

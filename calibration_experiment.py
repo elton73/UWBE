@@ -43,6 +43,7 @@ def on_message(client, userdata, msg):
             continue
         if not data['success']:
             print("Data unsuccessfully retrieved")
+            print(data)
             continue
         if not tag or data['tagId'] != tag.tag_id:
             print(f"Cannot find tag with tag id: {tag.tag_id}")
@@ -82,6 +83,7 @@ class StartThread(threading.Thread):
             return
 
         #get output directory to save csv
+        print("Choose Where To Save CSV.")
         out = dir_handler.choose_output_directory()
         if out == "q":
             stop_flag = True
@@ -94,7 +96,7 @@ class StartThread(threading.Thread):
             dir_handler.setup_csv("furniture_detection")
 
         #Start all threads
-        PlayAudio().start()
+        # PlayAudio().start()
         client.loop_start()
 
         countdown = 5
