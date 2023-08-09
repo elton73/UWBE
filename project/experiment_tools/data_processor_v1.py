@@ -1,5 +1,5 @@
 """
-Average every data point
+Data processor version 1 (Best Performance). Averages every data point
 """
 
 from project.utils.data import DataNode
@@ -10,6 +10,8 @@ class DataProcessorV1:
         self.averaging_window_threshold = 25
         self.speed_threshold = 0.2
         self.count_threshold = 14
+
+        self.version = "1"
 
         self.index = self.averaging_window_threshold // 2
         self.current_data_point = None
@@ -34,6 +36,9 @@ class DataProcessorV1:
         self.speeds = []
         self.timestamps = []
 
+        # save all data for evaluating later
+        self.all_data = []
+
     def add(self, raw_data):
         self.raw_data_buffer.append(raw_data)
 
@@ -50,11 +55,14 @@ class DataProcessorV1:
         data = DataNode(self.get_average_pos(), self.current_data_point.accelerometer,
                         self.current_data_point.raw_time,
                         self.current_data_point.update_rate)
+        if self.is_moving:
+            data.action_state = "MOVING"
         data.raw_coordinates = self.current_data_point.coordinates
 
         # fill data buffer with averaged coordinates
         if len(self.dataset) < 1:
             self.dataset.append(data)
+            self.all_data.append(data)
             if self.calibration:
                 self.speeds.append(data.speed)
                 self.timestamps.append(data.raw_time)
@@ -65,6 +73,7 @@ class DataProcessorV1:
         # get the speed from averaged coordinates
         data.set_speed(self.dataset[-1])
         self.dataset.append(data)
+        self.all_data.append(data)
         if self.calibration:
             self.speeds.append(data.speed)
             self.timestamps.append(data.raw_time)
@@ -102,16 +111,16 @@ class DataProcessorV1:
             self.count = 0
 
     def get_end_of_movement_time(self):
-        for d in self.dataset:
-            if d.speed < self.speed_threshold:
-                # instead of using the timestamp of the speed, use the timestamp from the first coordinate to appear
-                datapoint = next(i for i in self.dataset if i.raw_coordinates == d.raw_coordinates)
-                return datapoint.raw_time
+        for i in range(len(self.dataset)):
+            self.all_data[-len(self.dataset)+i].action_state = "IDLE"
+            if self.dataset[i].speed < self.speed_threshold:
+                return self.dataset[i].raw_time
 
     def get_start_of_movement_time(self):
-        for d in reversed(self.dataset):
-            if d.speed > self.speed_threshold:
-                return d.raw_time
+        for i in reversed(range(len(self.dataset))):
+            self.all_data[-len(self.dataset)+i].is_moving = "MOVING"
+            if self.dataset[i].speed > self.speed_threshold:
+                return self.dataset[i].raw_time
 
     def get_average_pos(self):
         sum_x = 0
@@ -139,4 +148,5 @@ class DataProcessorV1:
         self.moving_time_intervals = []
         self.speeds = []
         self.timestamps = []
+        self.all_data = []
 

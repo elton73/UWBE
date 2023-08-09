@@ -1,5 +1,5 @@
 """
-Plot coordinates
+Plot accuracy table results
 """
 import matplotlib
 from collections import defaultdict
@@ -57,8 +57,7 @@ def plot(datasets, type):
             if float(accuracy) > 0.9:
                 calibration_counter[setting] += 1
 
-        sorted_keys = sorted(calibration_counter.keys(), key=lambda x: int(x))
-        print(sorted_keys)
+        sorted_keys = sorted(calibration_counter.keys(), key=lambda x: float(x))
         y = []
         for key in sorted_keys:
             y.append(calibration_counter[key])  # store number of rows with accuracy greater than 90

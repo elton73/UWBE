@@ -1,3 +1,7 @@
+"""
+Class for handling all directory functions
+"""
+
 import tkinter as tk
 from tkinter import filedialog
 import csv
@@ -7,9 +11,9 @@ class DirectoryHandler:
     def __init__(self):
         self.file_paths = []
         self.output_directory = None
-
         self.csv_file = None
         self.csv_writer = None
+        self.datasets = []
 
     def setup_csv(self, name):
         #create output directory if not exists
@@ -27,19 +31,28 @@ class DirectoryHandler:
     def write_csv(self, data):
         self.csv_writer.writerow(data)
 
-    def read_csvs(self):
+    # read all csvs from the given filepaths. If given a file_name, only read the csv that has the same name.
+    def read_csvs(self, file_name=None):
         if self.file_paths == "q":
             return "q"
         elif not self.file_paths:
             print("No Files")
             return "q"
-        datasets = []
+        self.datasets = []
         for file_path in self.file_paths:
-            file = open(file_path, "r")
-            dataset = list(csv.reader(file, delimiter=","))
-            file.close()
-            datasets.append(dataset)
-        return datasets
+            if not file_name:
+                file = open(file_path, "r")
+                dataset = list(csv.reader(file, delimiter=","))
+                file.close()
+                self.datasets.append(dataset)
+            elif os.path.basename(file_path) == file_name:
+                file = open(file_path, "r")
+                dataset = list(csv.reader(file, delimiter=","))
+                file.close()
+                self.datasets.append(dataset)
+                break
+        if not self.datasets:
+            return "q"
 
     def close_csvs(self):
         if self.csv_file:

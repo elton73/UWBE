@@ -1,3 +1,7 @@
+"""
+Class for tracking zones in the ILS
+"""
+
 from matplotlib import path
 from collections import Counter
 

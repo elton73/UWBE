@@ -1,3 +1,7 @@
+"""
+Format a unix_timestamp to be easier to read
+"""
+
 import datetime
 
 def get_timestamp(unix_time):

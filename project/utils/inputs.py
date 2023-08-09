@@ -1,3 +1,7 @@
+"""
+All functions that ask for a text user input
+"""
+
 import os
 import csv
 from config import TAG_ID
@@ -147,7 +151,7 @@ def get_target_accuracy():
             return "q"
         else:
             try:
-                if 0 <= user_input <= 1:
+                if 0 <= float(user_input) <= 1:
                     accuracy = float(user_input)
                     return accuracy
             except ValueError:
@@ -196,7 +200,9 @@ def get_zed_csv():
                     print("Error opening file! Please Try Again")
 
 def get_object_id():
-    user_input = input("Enter object id: ")
+    user_input = input("Enter object id or press enter to skip: ")
     if user_input == "q":
         return "q"
+    elif user_input == "":
+        return "ANY"
     return user_input

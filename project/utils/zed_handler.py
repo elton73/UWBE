@@ -1,3 +1,7 @@
+"""
+Handles processing and storing of Zed camera datasets
+"""
+
 import project.utils.inputs as inputs
 from project.utils.directory_handler import DirectoryHandler
 
@@ -6,28 +10,27 @@ class ZedHandler(DirectoryHandler):
         super(DirectoryHandler, self).__init__()
         self.zed_data = []
         self.filtered_data = []
-        self.movement_intervals = []
         self.total_moving_time = 0.0
-        self.transitions = 0
         self.UWB_start_time = None
+        self.obj_id = None
 
     def get_zed_data(self):
-        zed_datasets = self.read_csvs()
-        if zed_datasets == "q":
+        if self.datasets == "q":
             return "q"
-        obj_id = inputs.get_object_id()
-        if obj_id == "q":
+        if not self.obj_id:
+            self.obj_id = inputs.get_object_id()
+        if self.obj_id == "q":
             return "q"
 
-        zed_dataset = zed_datasets[0]
-        zed_dataset.pop(0)
-        for zed_data in zed_dataset:
-            if str(zed_data[0]) == obj_id and str(zed_data[4] != "nan"):
-                zed_data_node = ZedData()
-                zed_data_node.set(float(zed_data[4]), float(zed_data[10]), zed_data[9])
-                self.zed_data.append(zed_data_node)
+        for zed_dataset in self.datasets:
+            zed_dataset.pop(0)
+            for zed_data in zed_dataset:
+                if (str(zed_data[0]) == self.obj_id or self.obj_id == "ANY") and str(zed_data[4] != "nan"):
+                    zed_data_node = ZedData()
+                    zed_data_node.set(float(zed_data[4]), float(zed_data[10]), zed_data[9])
+                    self.zed_data.append(zed_data_node)
 
-    def get_movement_intervals(self):
+    def get_moving_time(self):
         is_moving = False
         start_time = None
         for data in self.filtered_data:
@@ -38,14 +41,15 @@ class ZedHandler(DirectoryHandler):
                 end_time = data.timestamp
                 is_moving = False
                 if end_time-start_time >= 1:
-                    self.transitions += 1
                     moving_data = MovingData(round(start_time-self.UWB_start_time, 2), round(end_time-self.UWB_start_time, 2))
-                    self.movement_intervals.append([moving_data.start_of_movement, moving_data.end_of_movement])
                     self.total_moving_time += round(moving_data.moving_time, 2)
+
+    # Try to match timestamps between zed data and UWB data by taking the smallest difference between
+    def match_timestamps(self, timestamp):
+        return min(self.filtered_data, key=lambda obj: abs(timestamp - obj.timestamp))
 
     def filter_timestamps(self, start_time, end_time):
         self.UWB_start_time = start_time
-        self.filtered_data = []
         for i in self.zed_data:
             if start_time <= i.timestamp:
                 self.filtered_data.append(i)
@@ -53,9 +57,9 @@ class ZedHandler(DirectoryHandler):
                 break
 
     def reset(self):
-        self.movement_intervals = []
+        self.filtered_data = []
         self.total_moving_time = 0.0
-        self.transitions = 0
+        self.UWB_start_time = None
 
 class ZedData:
     def __init__(self):

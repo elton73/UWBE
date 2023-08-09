@@ -1,3 +1,7 @@
+"""
+Storage for all mp3 urls that the Google Mini will play
+"""
+
 import config
 def get_url(zone):
     if zone == "Living Room":

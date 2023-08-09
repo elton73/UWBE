@@ -1,3 +1,7 @@
+"""
+Class for handling the connection to the Google Mini
+"""
+
 import pychromecast
 import config
 

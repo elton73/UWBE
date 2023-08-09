@@ -1,8 +1,7 @@
 """
-Data classes for tracking all data #incomplete
+Data classes for tracking all data
 """
 
-import datetime
 import math
 
 
@@ -14,6 +13,7 @@ class DataNode:
         self.update_rate = u
         self.speed = 0.0
         self.index = None
+        self.action_state = "IDLE"
         self.raw_coordinates = None
 
     def set_speed(self, data):
@@ -31,11 +31,3 @@ class RawData:
         self.raw_time = r
         self.update_rate = u
 
-
-class DataNodeV7:
-    def __init__(self, coordinates, index, raw_time, speed=0.0):
-        self.coordinates = coordinates
-        self.speed = speed
-        self.index = index
-        self.is_moving = False
-        self.raw_time = raw_time

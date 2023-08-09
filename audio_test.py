@@ -1,10 +1,9 @@
+"""
+Test if the Google mini audio can connect to python
+"""
 import time
 import pychromecast
 import config
-
-"""
-Test the Google mini audio
-"""
 
 if __name__ == '__main__':
     # Try connecting to chromecast directly
