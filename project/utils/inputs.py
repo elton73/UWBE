@@ -136,10 +136,10 @@ def get_plot_type():
             print("Invalid Input. Please Try Again!")
 
 def get_calibration_plot_type():
-    print("1. Plot Count; 2. Plot Speed Threshold; 3. Plot Averaging Window; 4. Plot All")
+    print("1. Plot Count; 2. Plot Speed Threshold; 3. Plot Averaging Window")
     while 1:
         user_input = input("Enter Plot Type: ")
-        if user_input == '1' or user_input == '2' or user_input == '3' or user_input == '4' or user_input == "q":
+        if user_input == '1' or user_input == '2' or user_input == '3' or user_input == "q":
             return user_input
         else:
             print("Invalid Input. Please Try Again!")
@@ -206,3 +206,4 @@ def get_object_id():
     elif user_input == "":
         return "ANY"
     return user_input
+

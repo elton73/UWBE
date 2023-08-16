@@ -44,17 +44,18 @@ class ZedHandler(DirectoryHandler):
                     moving_data = MovingData(round(start_time-self.UWB_start_time, 2), round(end_time-self.UWB_start_time, 2))
                     self.total_moving_time += round(moving_data.moving_time, 2)
 
-    # Try to match timestamps between zed data and UWB data by taking the smallest difference between
+    # Try to match timestamps between zed data and UWB data by taking the smallest difference between them
     def match_timestamps(self, timestamp):
         return min(self.filtered_data, key=lambda obj: abs(timestamp - obj.timestamp))
 
     def filter_timestamps(self, start_time, end_time):
         self.UWB_start_time = start_time
         for i in self.zed_data:
-            if start_time <= i.timestamp:
-                self.filtered_data.append(i)
-            elif end_time <= i.timestamp:
+            if end_time <= i.timestamp:
                 break
+            elif start_time <= i.timestamp:
+                self.filtered_data.append(i)
+
 
     def reset(self):
         self.filtered_data = []

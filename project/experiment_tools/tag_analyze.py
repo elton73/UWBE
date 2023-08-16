@@ -66,6 +66,7 @@ class TagAnalyzer(Accuracy):
                     self.false_positives += 1
 
         self.accuracy = self.get_accuracy()
+        self.accuracy = self.get_accuracy()
 
         self.csv_data = [
             self.tag_id,
