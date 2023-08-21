@@ -1,5 +1,6 @@
 """
-Plot accuracy table results
+Plot accuracy table results.
+Choose an accuracy table, select which calibration to plot, and set the target accuracy.
 """
 import matplotlib
 from collections import defaultdict
@@ -11,6 +12,7 @@ matplotlib.rcParams['interactive'] = True
 dir_handler = DirectoryHandler()
 
 save = False
+TARGET_ACCURACY = 0.9  # plot all calibrations with an accuracy above this value in decimal
 
 def main():
     # choose output type
@@ -38,9 +40,18 @@ def main():
     plot(calibration_plot_type)
 
 def plot(type):
+
+    calibration_dict = {
+        "1": "Count",
+        "2": "Speed Threshold",
+        "3": "Averaging Window",
+    }
+
+    calibration_counter = defaultdict(int)
+    y = []
+
     for dataset in dir_handler.datasets:
         dataset.pop(0)
-        calibration_counter = defaultdict(int)
 
         for d in dataset:
             accuracy = d[2]
@@ -50,17 +61,18 @@ def plot(type):
                 setting = d[11]
             elif type == "3":
                 setting = d[12]
-            if float(accuracy) > 0.85:
+            if float(accuracy) > TARGET_ACCURACY:
                 calibration_counter[setting] += 1
 
-        sorted_keys = sorted(calibration_counter.keys(), key=lambda x: float(x))
-        y = []
-        for key in sorted_keys:
-            y.append(calibration_counter[key])  # store number of rows with accuracy greater than 90
+    sorted_keys = sorted(calibration_counter.keys(), key=lambda x: float(x))
+    for key in sorted_keys:
+        y.append(calibration_counter[key])  # store number of rows with accuracy greater than 90
 
-        plt.scatter([round(float(key), 2) for key in sorted_keys], y, s=5)
-        plt.xticks(rotation='vertical')
-        plt.show()
+    plt.scatter([round(float(key), 2) for key in sorted_keys], y, s=5)
+    plt.xticks(rotation='vertical')
+    plt.xlabel(f"{calibration_dict[type]}")
+    plt.ylabel(f"# of Configurations With Accuracy Above {TARGET_ACCURACY*100}%")
+    plt.show()
 
 if __name__ == '__main__':
     main()

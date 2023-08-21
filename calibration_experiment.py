@@ -12,7 +12,7 @@ import json
 import ssl
 from project.experiment_tools.tag_calibration import TagCalibration
 import time
-from project.utils.pychromecast_handler import AudioPlayer
+from project.utils.pychromecast_handler import PychromecastPlayer
 import project.utils.inputs as inputs
 import config
 from urllib.request import urlretrieve
@@ -20,6 +20,7 @@ from mutagen.mp3 import MP3
 from project.utils.urls import get_url
 from project.utils.directory_handler import DirectoryHandler
 import winsound
+from project.utils.audio_handler import AudioHandler
 
 # globals
 tag = TagCalibration(config.TAG_ID)
@@ -122,7 +123,7 @@ class StartThread(threading.Thread):
             dir_handler.setup_csv("furniture_detection")
 
         #Start all threads
-        # PlayAudio().start()
+        PlayAudio().start()
         client.loop_start()
 
         # set beep settings
@@ -175,16 +176,16 @@ class StartThread(threading.Thread):
 class PlayAudio(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.audio_player = AudioPlayer()
+        self.audio_handler = AudioHandler()
         self.previous_zone = None
         self._wait_duration = 0.0
         self.previous_time = None
 
 
     def run(self):
-        # every second, check the zone of the tag and broadcast the location if the tag has changed zones
+        # every second, check the zone of the tag and broadcast the question if the tag has entered the right zone
         while not stop_flag:
-            time.sleep(1)
+            time.sleep(3)
             if not tag:
                 break
             if not running:
@@ -192,24 +193,14 @@ class PlayAudio(threading.Thread):
                 self._wait_duration = 0.0
                 self.previous_time = None
                 continue
-            print(tag.zone.name)
 
-            # set a wait duration to prevent triggers while audio is playing
-            if self._wait_duration <= 0:
-                # Compare previous zone to current zone to control triggers
-                if self.previous_zone != tag.zone.name:
-                    self.previous_zone = tag.zone.name
-                    if not tag.zone.name == "Out Of Bounds":
-                        # Play mp3 from url
-                        url = get_url(tag.zone.name)
-                        filename, headers = urlretrieve(url)
-                        audio = MP3(filename)
-                        self._wait_duration = audio.info.length
-                        self.audio_player.play_url(url)
-                        self.previous_time = time.time()
-            else:
-                self._wait_duration -= (time.time()-self.previous_time)
-                self.previous_time = time.time()
+            if tag.zone.name == "Bedroom":
+                self.audio_handler.run()
+                new_handler = DirectoryHandler()
+                new_handler.automatically_setup_output_directory("test")
+                new_handler.setup_csv("audio_responses")
+                new_handler.write_csv(self.audio_handler.responses)
+                new_handler.close_csvs()
 
 if __name__ == '__main__':
     StartThread().start()

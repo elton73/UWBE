@@ -1,5 +1,5 @@
 """
-Find standard deviation and mode of uwb noise experiment data.
+Find standard deviation and mean of uwb noise experiment data.
 """
 
 from project.utils.directory_handler import DirectoryHandler

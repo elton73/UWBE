@@ -6,6 +6,7 @@ import tkinter as tk
 from tkinter import filedialog
 import csv
 import os
+import sys
 
 class DirectoryHandler:
     def __init__(self):
@@ -92,6 +93,8 @@ class DirectoryHandler:
             print("No directory selected.")
             return "q"
 
+    def automatically_setup_output_directory(self, dir_name):
+        self.output_directory = os.path.join(sys.path[1], dir_name)
 
 
 

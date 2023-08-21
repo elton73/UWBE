@@ -111,16 +111,22 @@ class DataProcessorV1:
             self.count = 0
 
     def get_end_of_movement_time(self):
+        temp = None
         for i in range(len(self.dataset)):
             self.all_data[-len(self.dataset)+i].action_state = "IDLE"
-            if self.dataset[i].speed < self.speed_threshold:
-                return self.dataset[i].raw_time
+            if self.dataset[i].speed > self.speed_threshold and temp:
+                break
+            temp = self.dataset[i].raw_time
+        return temp
 
     def get_start_of_movement_time(self):
+        temp = None
         for i in reversed(range(len(self.dataset))):
             self.all_data[-len(self.dataset)+i].is_moving = "MOVING"
-            if self.dataset[i].speed > self.speed_threshold:
-                return self.dataset[i].raw_time
+            if self.dataset[i].speed < self.speed_threshold and temp:
+                break
+            temp = self.dataset[i].raw_time
+        return temp
 
     def get_average_pos(self):
         sum_x = 0

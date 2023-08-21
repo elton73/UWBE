@@ -3,8 +3,11 @@ Format a unix_timestamp to be easier to read
 """
 
 import datetime
+import time
 
-def get_timestamp(unix_time):
+def get_timestamp(unix_time=None):
+    if not unix_time:
+        unix_time = time.time()
     local_datetime = datetime.datetime.fromtimestamp(unix_time)
     return \
         f"{local_datetime.strftime('%Y')}-" \

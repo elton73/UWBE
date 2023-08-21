@@ -5,7 +5,7 @@ Class for handling the connection to the Google Mini
 import pychromecast
 import config
 
-class AudioPlayer:
+class PychromecastPlayer:
     def __init__(self):
         self.mc = None
         self.cast = None

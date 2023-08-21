@@ -20,7 +20,7 @@ import os
 import winsound
 
 """
-Important Globals
+Set Globals Here
 """
 ###
 tag = TagAnalyzer(TAG_ID, data_processor="1")  # choose data processor to use from experiment_tools
@@ -34,7 +34,7 @@ averaging_window_threshold_min = 3
 averaging_window_threshold_max = 71
 averaging_window_threshold_increment = 2
 speed_threshold_min = 0.1
-speed_threshold_max = 2.0
+speed_threshold_max = 1.0
 speed_threshold_increment = 0.05
 count_min = 2
 count_max = 40

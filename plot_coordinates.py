@@ -17,13 +17,8 @@ save = False
 
 # averaging windows to test
 averaging_window_threshold_min = 3
-averaging_window_threshold_max = 71
+averaging_window_threshold_max = 41
 averaging_window_threshold_increment = 2
-
-# # debug
-# averaging_window_threshold_min = 25
-# averaging_window_threshold_max = 25
-# averaging_window_threshold_increment = 1
 
 scatterplot = True
 matplotlib.rcParams['interactive'] = True
